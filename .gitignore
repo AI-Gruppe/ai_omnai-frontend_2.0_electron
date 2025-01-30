@@ -1,4 +1,4 @@
-electron/res/angular/**
+electron/res/angular/**/**
 **/.angular/
 # Logs
 logs
