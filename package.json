@@ -1,6 +1,6 @@
 {
   "name": "elektronnachelektrontutorial",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "electron/main.js",
   "scripts": {
     "prestart": "npm --prefix angular-frontend run build",
@@ -10,7 +10,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
-  "author": "Simon Guth",
+  "author": "Auto-Intern GmbH",
   "license": "ISC",
   "description": "Hier eine Beschreibung",
   "devDependencies": {
