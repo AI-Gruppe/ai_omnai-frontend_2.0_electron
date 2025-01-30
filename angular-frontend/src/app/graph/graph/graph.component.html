@@ -1,8 +1,6 @@
 <div class="flex flex-col gap-4 size-full">
-
-<div #plotlyContainer class="size-full"></div>
-@for (item of dataSeries()|keyvalue; track $index) {
-    {{item.key}} {{item.value.length}}
-}
-
+  <div #plotlyContainer class="size-full"></div>
+  @for (item of dataSeries() | keyvalue; track $index) {
+    {{ item.key }} {{ item.value.length }}
+  }
 </div>

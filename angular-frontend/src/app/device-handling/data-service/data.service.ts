@@ -87,7 +87,6 @@ export class DataService {
     });
 
     this.socket.addEventListener('message', (event) => {
-
       let parsedMessage: unknown;
       try {
         parsedMessage = JSON.parse(event.data);
@@ -98,7 +97,7 @@ export class DataService {
       if (isOmnAIDataMessage(parsedMessage)) {
         this.data.update((records) => {
           parsedMessage.devices.forEach((uuid, index) => {
-            const deviceData = records[uuid] ?? []; 
+            const deviceData = records[uuid] ?? [];
             if (parsedMessage.data[index]) {
               deviceData.push({
                 timestamp: parsedMessage.data[index].timestamp,

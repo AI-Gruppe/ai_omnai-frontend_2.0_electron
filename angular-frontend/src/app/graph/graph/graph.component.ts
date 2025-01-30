@@ -7,7 +7,7 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import  {newPlot, react} from 'plotly.js-basic-dist-min';
+import { newPlot, react } from 'plotly.js-basic-dist-min';
 
 @Component({
   selector: 'app-graph',
@@ -21,7 +21,10 @@ export class GraphComponent {
     input.required<Record<string, { timestamp: number; value: number }[]>>();
 
   plotContainer = viewChild.required<ElementRef>('plotlyContainer');
-  updatGraph = effect(() => {const data = this.dataSeries();  this.updateGraph()});
+  updatGraph = effect(() => {
+    const data = this.dataSeries();
+    this.updateGraph();
+  });
   ngAfterViewInit(): void {
     this.initializeGraph();
   }
