@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "electron/main.js",
   "scripts": {
+    "prestart": "npm --prefix angular-frontend run build",
+    "prepackage": "npm --prefix angular-frontend run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron-forge start",
     "package": "electron-forge package",
