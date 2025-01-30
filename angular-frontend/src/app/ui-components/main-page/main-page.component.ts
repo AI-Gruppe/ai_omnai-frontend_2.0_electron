@@ -6,16 +6,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  standalone: true,
-  selector: 'app-main-page',
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-  ],
-  template: `
+    selector: 'app-main-page',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatCardModule,
+        MatInputModule,
+        MatProgressSpinnerModule,
+    ],
+    template: `
     <div class="flex flex-col items-center p-6 space-y-6 max-w-2xl mx-auto">
       <h1 class="text-3xl font-bold text-center text-blue-600">
         OmnAI Electron App
@@ -88,13 +87,13 @@ import { CommonModule } from '@angular/common';
       ></mat-progress-spinner>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       mat-form-field {
         width: 100%;
       }
     `,
-  ],
+    ]
 })
 export class MainPageComponent implements OnInit, AfterViewInit {
   isConnected = signal(false);
