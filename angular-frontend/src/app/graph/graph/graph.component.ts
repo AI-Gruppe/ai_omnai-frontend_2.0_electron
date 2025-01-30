@@ -7,7 +7,7 @@ import {
   input,
   viewChild,
 } from '@angular/core';
-import * as Plotly from 'plotly.js-dist-min';
+import  {newPlot, react} from 'plotly.js-basic-dist-min';
 
 @Component({
   selector: 'app-graph',
@@ -27,7 +27,7 @@ export class GraphComponent {
   }
 
   initializeGraph() {
-    Plotly.newPlot(this.plotContainer().nativeElement, [], {
+    newPlot(this.plotContainer().nativeElement, [], {
       title: 'Oszillogramm',
       xaxis: { title: 'Zeit (ms)' },
       yaxis: { title: 'Wert' },
@@ -43,6 +43,6 @@ export class GraphComponent {
       name: uuid,
     }));
 
-    Plotly.react(this.plotContainer().nativeElement, traces);
+    react(this.plotContainer().nativeElement, traces);
   }
 }
