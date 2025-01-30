@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const { spawn } = require("child_process");
 const path = require("node:path");
 
+if (require("electron-squirrel-startup")) app.quit();
+
 let mainWindow;
 let backendProcess; // Reference to backend process
 
