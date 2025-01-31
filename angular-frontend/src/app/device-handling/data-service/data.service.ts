@@ -116,10 +116,7 @@ export class DataService {
 
     this.httpClient
       .get<DeviceOverview>('http://192.168.178.97:8080/UUID')
-      .pipe(
-        tap(() => 
-          this.loadingDevices.set(false))
-      )
+      .pipe(tap(() => this.loadingDevices.set(false)))
       .subscribe({
         next: this.#updateDevicesFromBackendResponse,
         error: (err) => {
