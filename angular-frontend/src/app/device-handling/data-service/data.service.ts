@@ -1,62 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-
-interface DeviceOverview {
-  devices: {
-    UUID: string;
-  }[];
-  colors: {
-    color: { r: number; g: number; b: number };
-  }[];
-}
+import { DeviceOverview, messageTypeguards } from './message.typeguards';
+import { tap } from 'rxjs';
 
 interface DataFormat {
   timestamp: number;
   value: number;
-}
-
-type wsMessageFormats =
-  | string
-  | {
-      devices: string[];
-      data: {
-        timestamp: number;
-        value: number[];
-      }[];
-    };
-
-function isStringMessage(message: unknown): message is string {
-  return typeof message === 'string';
-}
-
-function isOmnAIDataMessage(message: unknown): message is {
-  devices: string[];
-  data: { timestamp: number; value: number[] }[];
-} {
-  if (typeof message !== 'object' || message === null) return false;
-
-  const msg = message as any;
-
-  if (
-    !Array.isArray(msg.devices) ||
-    !msg.devices.every((d: any) => typeof d === 'string')
-  ) {
-    return false;
-  }
-
-  if (
-    !Array.isArray(msg.data) ||
-    !msg.data.every(
-      (entry: any) =>
-        typeof entry.timestamp === 'number' &&
-        Array.isArray(entry.value) &&
-        entry.value.every((v: any) => typeof v === 'number'),
-    )
-  ) {
-    return false;
-  }
-
-  return true;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -94,7 +43,7 @@ export class DataService {
         parsedMessage = event.data;
       }
 
-      if (isOmnAIDataMessage(parsedMessage)) {
+      if (messageTypeguards.isOmnAIDataMessage(parsedMessage)) {
         this.data.update((records) => {
           parsedMessage.devices.forEach((uuid, index) => {
             const deviceData = records[uuid] ?? [];
@@ -167,27 +116,30 @@ export class DataService {
 
     this.httpClient
       .get<DeviceOverview>('http://192.168.178.97:8080/UUID')
+      .pipe(
+        tap(() => 
+          this.loadingDevices.set(false))
+      )
       .subscribe({
-        next: (data) => {
-          if (!data.devices || !data.colors) {
-            console.error('Fehlerhafte Antwortstruktur:', data);
-            this.loadingDevices.set(false);
-            return;
-          }
-
-          const mappedDevices = data.devices.map((device, index) => ({
-            UUID: device.UUID,
-            color: data.colors[index]?.color ?? { r: 0, g: 0, b: 0 }, // Falls keine Farbe vorhanden ist, Standardfarbe setzen
-          }));
-
-          console.log('mappedDevices', mappedDevices);
-          this.devices.set(mappedDevices);
-          this.loadingDevices.set(false);
-        },
+        next: this.#updateDevicesFromBackendResponse,
         error: (err) => {
-          this.loadingDevices.set(false);
           console.error('Fehler beim Abrufen der UUIDs:', err);
         },
       });
+  }
+
+  #updateDevicesFromBackendResponse(data: DeviceOverview) {
+    if (!data.devices || !data.colors) {
+      return;
+    }
+
+    const mappedDevices = data.devices.map((device, index) => ({
+      UUID: device.UUID,
+      color: data.colors[index]?.color ?? { r: 0, g: 0, b: 0 }, // Falls keine Farbe vorhanden ist, Standardfarbe setzen
+    }));
+
+    console.log('mappedDevices', mappedDevices);
+    this.devices.set(mappedDevices);
+    this.loadingDevices.set(false);
   }
 }
