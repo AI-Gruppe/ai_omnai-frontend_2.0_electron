@@ -119,7 +119,7 @@ export class DataService {
       .get<DeviceOverview>(`http://${this.serverULR}/UUID`)
       .pipe(tap(() => this.loadingDevices.set(false)))
       .subscribe({
-        next: this.#updateDevicesFromBackendResponse,
+        next: this.#updateDevicesFromBackendResponse.bind(this),
         error: (err) => {
           console.error('Fehler beim Abrufen der UUIDs:', err);
         },
