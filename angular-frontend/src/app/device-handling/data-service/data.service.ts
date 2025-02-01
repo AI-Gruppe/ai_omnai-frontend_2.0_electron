@@ -77,6 +77,7 @@ export class DataService {
       console.log('WebSocket Verbindung geschlossen.');
       this.isConnected.set(false);
       this.socket = null;
+      this.data.set({}); // When the devices are disconnected, they reset and the old data is not valid anymore
     });
 
     this.socket.addEventListener('error', (error) => {
