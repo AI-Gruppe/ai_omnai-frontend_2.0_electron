@@ -10,7 +10,8 @@ interface DataFormat {
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-  readonly #wsURL = 'ws://192.168.178.97:8080/ws';
+  readonly serverULR = "127.0.0.1:8080"
+  readonly #wsURL = `ws://${this.serverULR}/ws`;
   private socket: WebSocket | null = null;
   isConnected = signal(false);
   devices = signal<
@@ -115,7 +116,7 @@ export class DataService {
     this.loadingDevices.set(true);
 
     this.httpClient
-      .get<DeviceOverview>('http://192.168.178.97:8080/UUID')
+      .get<DeviceOverview>(`http://${this.serverULR}/UUID`)
       .pipe(tap(() => this.loadingDevices.set(false)))
       .subscribe({
         next: this.#updateDevicesFromBackendResponse,
