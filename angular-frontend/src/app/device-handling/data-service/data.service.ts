@@ -8,6 +8,8 @@ interface DataFormat {
   value: number;
 }
 
+interface DeviceInformation { UUID: string; color: { r: number; g: number; b: number } };
+
 @Injectable({ providedIn: 'root' })
 export class DataService {
   readonly serverULR = "127.0.0.1:8080"
@@ -15,7 +17,7 @@ export class DataService {
   private socket: WebSocket | null = null;
   isConnected = signal(false);
   devices = signal<
-    { UUID: string; color: { r: number; g: number; b: number } }[]
+    DeviceInformation[]
   >([]);
   loadingDevices = signal<boolean>(false);
 
