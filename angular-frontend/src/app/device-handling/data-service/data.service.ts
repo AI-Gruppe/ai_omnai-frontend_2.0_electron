@@ -1,24 +1,27 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { DeviceOverview, messageTypeguards } from './message.typeguards';
 import { tap } from 'rxjs';
+import { omnAIServerResolver } from './server-resolver.service';
 
 interface DataFormat {
   timestamp: number;
   value: number;
 }
 
-interface DeviceInformation { UUID: string; color: { r: number; g: number; b: number } };
+interface DeviceInformation {
+  UUID: string;
+  color: { r: number; g: number; b: number };
+}
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-  readonly serverULR = "127.0.0.1:8080"
-  readonly #wsURL = `ws://${this.serverULR}/ws`;
+  readonly serverULR = inject(omnAIServerResolver).omnAIServer;
+  readonly #wsURL = computed(() => {const url = this.serverULR(); 
+  if (!url) return null; else return `ws://${this.serverULR()}/ws`;})
   private socket: WebSocket | null = null;
   isConnected = signal(false);
-  devices = signal<
-    DeviceInformation[]
-  >([]);
+  devices = signal<DeviceInformation[]>([]);
   loadingDevices = signal<boolean>(false);
 
   data = signal<Record<string, DataFormat[]>>({});
@@ -29,9 +32,9 @@ export class DataService {
       console.log('WebSocket ist bereits verbunden.');
       return;
     }
-
-    console.log(`Verbinde mit WebSocket: ${this.#wsURL}`);
-    this.socket = new WebSocket(this.#wsURL);
+    const wsULR = this.#wsURL()
+    if (!wsULR) throw new Error("No server found")
+    this.socket = new WebSocket(wsULR);
 
     this.socket.addEventListener('open', () => {
       console.log('WebSocket Verbindung hergestellt.');
@@ -115,10 +118,13 @@ export class DataService {
   }
 
   getUUIDs() {
+    const serverULR = this.serverULR();
+    if (!serverULR) throw new Error("No omnai Server found");
+
     this.loadingDevices.set(true);
 
     this.httpClient
-      .get<DeviceOverview>(`http://${this.serverULR}/UUID`)
+      .get<DeviceOverview>(`http://${serverULR}/UUID`)
       .pipe(tap(() => this.loadingDevices.set(false)))
       .subscribe({
         next: this.#updateDevicesFromBackendResponse.bind(this),
@@ -137,8 +143,8 @@ export class DataService {
       UUID: device.UUID,
       color: data.colors[index]?.color ?? { r: 0, g: 0, b: 0 }, // Falls keine Farbe vorhanden ist, Standardfarbe setzen
     }));
-
     console.log('mappedDevices', mappedDevices);
+    console.log(this.devices());
     this.devices.set(mappedDevices);
     this.loadingDevices.set(false);
   }
