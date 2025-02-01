@@ -2,7 +2,7 @@ import { Injectable, Signal, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class omnAIServerResolver {
-  private serverUrl = signal<string | null>("127.0.0.1:8080");
+  private serverUrl = signal<string | null>('127.0.0.1:8080');
   omnAIServer = this.serverUrl.asReadonly();
 
   async findServer(possibleUrls: string[]): Promise<void> {

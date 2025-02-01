@@ -17,8 +17,11 @@ interface DeviceInformation {
 @Injectable({ providedIn: 'root' })
 export class DataService {
   readonly serverULR = inject(omnAIServerResolver).omnAIServer;
-  readonly #wsURL = computed(() => {const url = this.serverULR(); 
-  if (!url) return null; else return `ws://${this.serverULR()}/ws`;})
+  readonly #wsURL = computed(() => {
+    const url = this.serverULR();
+    if (!url) return null;
+    else return `ws://${this.serverULR()}/ws`;
+  });
   private socket: WebSocket | null = null;
   isConnected = signal(false);
   devices = signal<DeviceInformation[]>([]);
@@ -32,8 +35,8 @@ export class DataService {
       console.log('WebSocket ist bereits verbunden.');
       return;
     }
-    const wsULR = this.#wsURL()
-    if (!wsULR) throw new Error("No server found")
+    const wsULR = this.#wsURL();
+    if (!wsULR) throw new Error('No server found');
     this.socket = new WebSocket(wsULR);
 
     this.socket.addEventListener('open', () => {
@@ -119,7 +122,7 @@ export class DataService {
 
   getUUIDs() {
     const serverULR = this.serverULR();
-    if (!serverULR) throw new Error("No omnai Server found");
+    if (!serverULR) throw new Error('No omnai Server found');
 
     this.loadingDevices.set(true);
 
