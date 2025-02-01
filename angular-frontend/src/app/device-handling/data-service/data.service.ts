@@ -40,6 +40,8 @@ export class DataService {
     this.socket = new WebSocket(wsULR);
 
     this.socket.addEventListener('open', () => {
+       this.data.set({}); // When the devices are disconnected, they reset and the old data is not valid anymore
+    
       console.log('WebSocket Verbindung hergestellt.');
       this.isConnected.set(true);
     });
@@ -77,8 +79,7 @@ export class DataService {
       console.log('WebSocket Verbindung geschlossen.');
       this.isConnected.set(false);
       this.socket = null;
-      this.data.set({}); // When the devices are disconnected, they reset and the old data is not valid anymore
-    });
+     });
 
     this.socket.addEventListener('error', (error) => {
       console.error('WebSocket Fehler:', error);

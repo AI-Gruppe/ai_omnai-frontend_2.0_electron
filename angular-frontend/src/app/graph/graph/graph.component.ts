@@ -39,15 +39,10 @@ export class GraphComponent {
     input.required<Record<string, { timestamp: number; value: number }[]>>();
 
   plotContainer = viewChild.required<ElementRef>('plotlyContainer');
-  containerSize = signal<{ width: number; height: number }>({
-    width: 0,
-    height: 0,
-  });
 
   updatGraph = effect(() => {
     const data = this.dataSeries();
-    const size = this.containerSize();
-    this.updateGraph(size.width, size.height);
+    this.updateGraph();
   });
   ngAfterViewInit(): void {
     this.initializeGraph();
@@ -55,23 +50,18 @@ export class GraphComponent {
 
   initializeGraph() {
     const element = this.plotContainer().nativeElement;
-    this.containerSize.set({
-      width: element.clientWidth,
-      height: element.clientHeight,
-    });
 
     newPlot(this.plotContainer().nativeElement, [], {
       title: 'Oszillogramm',
       xaxis: { title: 'Zeit (ms)' },
       yaxis: { title: 'Wert' },
       showlegend: true,
-      autosize: false,
-      width: element.width,
-      height: element.height,
+    }, {
+      responsive: true
     });
   }
 
-  updateGraph(width: number, height: number) {
+  updateGraph() {
     const traces = Object.entries(this.dataSeries()).map(([uuid, points]) => ({
       x: points.map((p) => p.timestamp),
       y: points.map((p) => p.value),
@@ -79,6 +69,6 @@ export class GraphComponent {
       name: uuid,
     }));
 
-    react(this.plotContainer().nativeElement, traces, {}, { responsive: true });
+    react(this.plotContainer().nativeElement, traces);
   }
 }
