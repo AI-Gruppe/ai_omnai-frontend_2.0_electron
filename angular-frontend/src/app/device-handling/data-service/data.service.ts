@@ -40,8 +40,8 @@ export class DataService {
     this.socket = new WebSocket(wsULR);
 
     this.socket.addEventListener('open', () => {
-       this.data.set({}); // When the devices are disconnected, they reset and the old data is not valid anymore
-    
+      this.data.set({}); // When the devices are disconnected, they reset and the old data is not valid anymore
+
       console.log('WebSocket Verbindung hergestellt.');
       this.isConnected.set(true);
     });
@@ -55,17 +55,18 @@ export class DataService {
       }
 
       if (messageTypeguards.isOmnAIDataMessage(parsedMessage)) {
+        console.log("parsedMsg", parsedMessage)
         this.data.update((records) => {
           parsedMessage.devices.forEach((uuid, index) => {
             const deviceData = records[uuid] ?? [];
-            if (parsedMessage.data[index]) {
-              deviceData.push({
-                timestamp: parsedMessage.data[index].timestamp,
-                value: parsedMessage.data[index].value[index] ?? 0,
-              });
-            }
+            const newDataPoints = parsedMessage.data.flatMap((point) => ({
+              timestamp: point.timestamp,
+              value: point.value[index]
+            }))
 
-            records[uuid] = deviceData;
+            console.log(deviceData)
+            records[uuid] = deviceData.concat(newDataPoints);
+            console.log(records[uuid])
           });
 
           return structuredClone(records);
@@ -79,7 +80,7 @@ export class DataService {
       console.log('WebSocket Verbindung geschlossen.');
       this.isConnected.set(false);
       this.socket = null;
-     });
+    });
 
     this.socket.addEventListener('error', (error) => {
       console.error('WebSocket Fehler:', error);
