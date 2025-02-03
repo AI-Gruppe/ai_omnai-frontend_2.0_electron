@@ -49,11 +49,9 @@ export class ServerDescription {
   });
   numSelectedDevices = computed(() => {
     const devices = this.selectedDevices();
-    console.log(devices);
     const value = Object.values(devices).filter(
       selected => selected === true
     ).length;
-    console.log('selected', value);
     return value;
   });
 
@@ -61,9 +59,10 @@ export class ServerDescription {
     const currentData = this.data();
     const result: Record<string, DataFormat[]> = {};
     for (const [uuid, dataArray] of Object.entries(currentData)) {
-      const n = dataArray.length / 2000;
+      const n = Math.max(1, Math.floor(dataArray.length / 2000)); 
       result[uuid] = dataArray.filter((_, index) => index % n === 0);
     }
+    return result;
   });
 
   constructor(
@@ -138,7 +137,13 @@ export class ServerDescription {
       this.#socket?.send(devices);
     });
 
+    let ignoreCounter = 0;
     this.#socket.addEventListener('message', event => {
+      if (ignoreCounter < 4) {
+        // the first messages contain garabge smtimes
+        ignoreCounter++;
+        return;
+      }
       let parsedMessage: unknown;
       try {
         parsedMessage = JSON.parse(event.data);
@@ -154,14 +159,7 @@ export class ServerDescription {
               timestamp: point.timestamp,
               value: point.value[index],
             }));
-
-            // ignore datapoints when timestamp was earlier
-            if (
-              existingData.length > 0 &&
-              newDataPoints[0].timestamp < existingData[0].timestamp
-            )
-              records[uuid] = existingData;
-            else records[uuid] = existingData.concat(newDataPoints);
+            records[uuid] = existingData.concat(newDataPoints);
           });
 
           return structuredClone(records);

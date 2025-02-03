@@ -28,7 +28,7 @@ export class DataService {
   limitedData = computed(() => {
     const combinedData: Record<string, DataFormat[]> = {};
     for (const [serverURL, server] of Object.entries(this.servers())) {
-      const serverData = server.data();
+      const serverData = server.limitedData();
       for (const [uuid, dataArray] of Object.entries(serverData)) {
         if (!combinedData[uuid]) {
           combinedData[uuid] = [];

@@ -21,7 +21,7 @@
       @let dataSet = devices.dataService.limitedData() | keyvalue;
       @defer (when dataSet.length > 0; on idle) {
         <!-- Graph wird nur geladen, wenn Daten vorhanden sind -->
-        <app-graph [dataSeries]="devices.dataService.data()" [colors]="devices.dataService.curveColors()"></app-graph>
+        <app-graph [dataSeries]="devices.dataService.limitedData()" [colors]="devices.dataService.curveColors()"></app-graph>
       } @loading {
         <p class="text-gray-500">Warte auf Daten...</p>
       } @error {
