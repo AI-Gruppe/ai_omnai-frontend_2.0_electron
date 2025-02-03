@@ -33,15 +33,4 @@ export class DeviceSelectionComponent {
       return updatedSet;
     });
   }
-
-  toggleConnection() {
-    const isConnected = this.dataService.isConnected();
-    const uuids = Array.from(this.selectedUUIDs());
-
-    if (isConnected) {
-      this.dataService.disconnect();
-    } else if (uuids.length > 0) {
-      this.dataService.requestDataFromDeviceUUIDs(uuids);
-    }
-  }
 }

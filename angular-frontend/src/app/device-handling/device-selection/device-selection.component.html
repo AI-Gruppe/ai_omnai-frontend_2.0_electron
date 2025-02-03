@@ -1,39 +1,74 @@
-<div class="flex-wrap p-4 space-y-4 flex gap-4">
-  <h2 class="text-xl font-bold">Geräteauswahl</h2>
+<div class="flex-wrap p-4 space-y-4 flex flex-col gap-4">
+  <h2 class="text-xl font-bold text-gray-800">Geräteauswahl</h2>
 
-  @let isConnected = dataService.isConnected();
+  <!-- Server List -->
+  @for (server of dataService.servers() | keyvalue; track server.key) {
+    @let serverURL = server.key;
+    @let serverObj = server.value;
+    <div class="bg-white/80 shadow-md rounded-lg p-4 relative">
+      @if (!serverObj.serverIsReachable()) {
+        <div
+          class="absolute inset-0 w-full h-full bg-gray-600/60 flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-4xl mr-2"
+            >cloud_off</span
+          >
+          <span class="text-white text-lg">Server unerreichbar</span>
+        </div>
+      }
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <h3 class="text-lg font-semibold text-gray-700 disabled:bg-gray-500/50">
+          {{ serverURL }}
+        </h3>
+        <button
+          [ngClass]="{
+            'text-green-500':
+              !serverObj.isConnected() && serverObj.numSelectedDevices() > 0,
+            'text-red-500': serverObj.isConnected(),
+            'text-gray-500':
+              !serverObj.isConnected() && serverObj.numSelectedDevices() === 0,
+          }"
+          class="px-4 py-2 rounded-md flex items-center"
+          (click)="
+            serverObj.isConnected()
+              ? serverObj.disconnect()
+              : serverObj.connect()
+          "
+          [disabled]="
+            !serverObj.isConnected() && serverObj.numSelectedDevices() === 0
+          ">
+          <span class="material-symbols-outlined mr-1">
+            {{ serverObj.isConnected() ? 'stop_circle' : 'play_circle' }}
+          </span>
+        </button>
+      </div>
 
-  <!-- Geräte laden -->
-  @let loadingDevices = dataService.loadingDevices();
-  <button
-    class="bg-red-800 text-white p-2 rounded-md"
-    (click)="dataService.getUUIDs()"
-    [disabled]="loadingDevices"
-  >
-    {{ loadingDevices ? "Lade Geräte..." : "Geräte laden" }}
-  </button>
-
-  <!-- Gerätauswahl mit Material Checkbox -->
-  <mat-list>
-    @for (device of dataService.devices(); track device.UUID) {
-      <mat-list-item>
-        <mat-checkbox
-          [checked]="selectedUUIDs().has(device.UUID)"
-          [disabled]="isConnected"
-          (change)="toggleDeviceSelection(device.UUID)"
-        >
-          {{ device.UUID }}
-        </mat-checkbox>
-      </mat-list-item>
-    } @empty {
-      <p class="text-gray-500">Keine Geräte gefunden</p>
-    }
-  </mat-list>
+      <!-- Device List with Checkboxes -->
+      <div class="mt-2">
+        <ul class="space-y-2">
+          @for (device of serverObj.devices(); track device.UUID) {
+            <li class="flex items-center">
+              <input
+                type="checkbox"
+                [checked]="selectedUUIDs().has(device.UUID)"
+                (change)="serverObj.toggleDevice(device.UUID)"
+                [disabled]="serverObj.isConnected()"
+                class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+              <label class="ml-2 text-gray-700">{{ device.UUID }}</label>
+            </li>
+          } @empty {
+            <p class="text-gray-500">Keine Geräte gefunden</p>
+          }
+        </ul>
+      </div>
+    </div>
+  }
 
   <!-- Übersicht der ausgewählten Geräte -->
   @if (selectedUUIDs().size > 0) {
-    <div class="p-2 bg-gray-200 rounded-md">
-      <h3 class="text-md font-semibold mb-1">Ausgewählte Geräte:</h3>
+    <div class="p-2 bg-gray-100 rounded-md shadow-sm">
+      <h3 class="text-md font-semibold mb-1 text-gray-700">
+        Ausgewählte Geräte:
+      </h3>
       <ul class="list-disc pl-4 text-sm text-gray-800">
         @for (uuid of selectedUUIDs(); track uuid) {
           <li>{{ uuid }}</li>
@@ -41,13 +76,4 @@
       </ul>
     </div>
   }
-
-  <!-- Start/Stop Button -->
-  <button
-    class="bg-red-800 text-white p-2 rounded-md disabled:bg-gray-600"
-    [disabled]="dataService.devices().length === 0"
-    (click)="toggleConnection()"
-  >
-    {{ isConnected ? "Verbindung stoppen" : "Verbindung starten" }}
-  </button>
 </div>
