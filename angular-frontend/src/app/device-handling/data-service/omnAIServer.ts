@@ -139,7 +139,7 @@ export class ServerDescription {
 
     let ignoreCounter = 0;
     this.#socket.addEventListener('message', event => {
-      if (ignoreCounter < 4) {
+      if (ignoreCounter < 2) {
         // the first messages contain garabge smtimes
         ignoreCounter++;
         return;

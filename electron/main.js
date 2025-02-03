@@ -64,6 +64,7 @@ ipcMain.handle("run-omnai-command", (event, commandArgs) => {
 
 // Initialize app
 app.whenReady().then(() => {
+  // startBackend();
   createWindow();
 
   app.on("activate", () => {
