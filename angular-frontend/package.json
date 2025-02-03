@@ -21,7 +21,6 @@
     "@angular/platform-browser-dynamic": "^19.1.4",
     "@angular/router": "^19.1.4",
     "d3": "^7.9.0",
-    "plotly.js-basic-dist-min": "^3.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -32,8 +31,6 @@
     "@angular/compiler-cli": "^19.1.4",
     "@types/d3": "^7.4.3",
     "@types/jasmine": "~5.1.0",
-    "@types/plotly.js-basic-dist-min": "^2.12.4",
-    "@types/plotly.js-dist-min": "^2.3.4",
     "autoprefixer": "^10.4.20",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
