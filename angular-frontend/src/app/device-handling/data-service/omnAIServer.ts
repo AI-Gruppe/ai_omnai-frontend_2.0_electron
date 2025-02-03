@@ -178,6 +178,7 @@ export class ServerDescription {
 
     this.#socket.addEventListener('error', error => {
       console.error('WebSocket Fehler:', error);
+      this.isConnected.set(false);
     });
   }
 

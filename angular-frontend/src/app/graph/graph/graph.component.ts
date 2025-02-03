@@ -39,7 +39,7 @@ import * as d3 from 'd3';
         <path
           [attr.transform]="'translate(' + _xScale.range()[0] + ',0 )'"
           [attr.d]="line()(curve.value)"
-          [attr.stroke]="'black'"
+          [attr.stroke]="colors()[curve.key]"
           [attr.id]="curve.key"
           fill="none"></path>
       }
@@ -66,6 +66,7 @@ import * as d3 from 'd3';
 export class GraphComponent {
   dataSeries =
     input.required<Record<string, { timestamp: number; value: number }[]>>();
+  colors = input.required<Record<string, string>>();
 
   plotContainer = viewChild.required<ElementRef>('plotlyContainer');
   xAxisRef = viewChild.required<ElementRef>('xAxis');

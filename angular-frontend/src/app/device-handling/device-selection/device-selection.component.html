@@ -53,7 +53,7 @@
                 (change)="serverObj.toggleDevice(device.UUID)"
                 [disabled]="serverObj.isConnected()"
                 class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-              <label class="ml-2 text-gray-700">{{ device.UUID }}</label>
+              <label  [style.color]="dataService.curveColors()[device.UUID] || '#000000'"  class="ml-2">{{ device.UUID }}</label>
             </li>
           } @empty {
             <p class="text-gray-500">Keine Geräte gefunden</p>

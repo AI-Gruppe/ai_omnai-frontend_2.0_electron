@@ -39,6 +39,19 @@ export class DataService {
     return combinedData;
   });
 
+  // these colors can be used as fill colors
+  curveColors = computed(() => {
+    const colors: Record<string, string> = {};
+    for (const server of Object.values(this.servers())) {
+      for (const device of server.devices()) {
+        const { r, g, b } = device.color;
+        const hexColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        colors[device.UUID] = hexColor;
+      }
+    }
+    return colors;
+  });
+
   constructor() {
     this.addServer('127.0.0.1:8080');
   }
