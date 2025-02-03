@@ -7,30 +7,10 @@ if (require("electron-squirrel-startup")) app.quit();
 let mainWindow;
 let backendProcess; // Reference to backend process
 
-// Start backend process (WebSocket server)
-function startBackend(event) {
+function startBackend() {
   const exePath = path.join(__dirname, "res", "omnai", "MiniOmni.exe");
   backendProcess = spawn(exePath, ["-w"]);
 
-  backendProcess.stdout.on("data", (data) => {
-    const message = data.toString();
-    console.log(`Backend: ${message}`);
-    if (event) event.sender.send("omnai-output", message);
-  });
-
-  backendProcess.stderr.on("data", (data) => {
-    const error = data.toString();
-    console.error(`Backend Error: ${error}`);
-    if (event) event.sender.send("omnai-error", error);
-  });
-
-  backendProcess.on("close", (code) => {
-    console.log(`Backend process exited with code ${code}`);
-    if (event)
-      event.sender.send("omnai-closed", `Backend exited with code ${code}`);
-  });
-
-  console.log("Backend process started...");
 }
 
 // Stop backend process
@@ -52,7 +32,8 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-  mainWindow.loadFile("electron/res/angular/browser/index.html");
+ const indexPath = path.join(__dirname, "res", "angular", "browser", "index.html");
+  mainWindow.loadFile(indexPath);
 }
 
 // IPC handler to start the backend
