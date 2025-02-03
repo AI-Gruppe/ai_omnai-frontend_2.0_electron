@@ -1,6 +1,6 @@
 {
-  "name": "elektronnachelektrontutorial",
-  "version": "2.0.0",
+  "name": "omnAIView",
+  "version": "1.0.0-alpha",
   "main": "electron/main.js",
   "scripts": {
     "prestart": "npm --prefix angular-frontend run build",
