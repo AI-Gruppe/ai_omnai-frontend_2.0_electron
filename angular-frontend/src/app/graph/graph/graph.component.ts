@@ -6,6 +6,7 @@ import {
   effect,
   ElementRef,
   input,
+  linkedSignal,
   OnInit,
   signal,
   viewChild,
@@ -16,9 +17,34 @@ import * as d3 from 'd3';
   selector: 'app-graph',
   imports: [CommonModule],
   template: `
-    <div class="size-full border border-blue-500">
-      <svg #plotlyContainer class="size-full"></svg>
-    </div>
+    <svg #plotlyContainer class="size-full p-4">
+      @let _xScale = xScale();
+      @let _yScale = yScale();
+      <rect
+        #backgroundRect
+        [attr.x]="_xScale.range()[0]"
+        [attr.y]="_yScale.range()[1]"
+        [attr.width]="_xScale.range()[1] - _xScale.range()[0]"
+        [attr.height]="_yScale.range()[0] - _yScale.range()[1]"
+        [attr.fill]="'none'"
+        [attr.opacity]="0.1"></rect>
+      <g
+        #xAxisTranslate
+        [attr.transform]="'translate(0,' + _yScale.range()[0] + ')'">
+        <g #xAxis></g>
+      </g>
+      <g
+        #yAxis
+        [attr.transform]="'translate(' + _xScale.range()[0] + ', 0)'"></g>
+      @for (curve of dataSeries() | keyvalue; track $index) {
+        <path
+          [attr.transform]="'translate(' + _xScale.range()[0] + ',0 )'"
+          [attr.d]="line()(curve.value)"
+          [attr.stroke]="'black'"
+          [attr.id]="curve.key"
+          fill="none"></path>
+      }
+    </svg>
   `,
   styles: [
     `
@@ -38,97 +64,116 @@ import * as d3 from 'd3';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GraphComponent implements OnInit {
-  dataSeries = input.required<Record<string, { timestamp: number; value: number }[]>>();
+export class GraphComponent {
+  dataSeries =
+    input.required<Record<string, { timestamp: number; value: number }[]>>();
 
   plotContainer = viewChild.required<ElementRef>('plotlyContainer');
+  xAxisRef = viewChild.required<ElementRef>('xAxis');
+  yAxisRef = viewChild.required<ElementRef>('yAxis');
 
   width = signal(600);
   height = signal(400);
+  margin = { top: 20, right: 20, bottom: 60, left: 60 };
 
-  lastData: Record<string, { timestamp: number; value: number }[]> | undefined;
-
-  // Helper function for downsampling
-  private downsample(points: { timestamp: number; value: number }[], n: number) {
-    return points.filter((_, i) => i % n === 0);
-  }
-
-  // Computed Signals for scales
-  xScale = computed(() => {
-    if (!this.xScaleCache || this.xScaleCache.data !== this.dataSeries()) {
-      const allTimestamps = Object.values(this.dataSeries()).flat().map(d => d.timestamp);
-      this.xScaleCache = {
-        data: this.dataSeries(),
-        scale: d3.scaleTime()
-          .domain(d3.extent(allTimestamps) as [number, number])
-          .range([0, this.width()])
-      };
-    }
-    return this.xScaleCache.scale;
+  xScaleRange = linkedSignal({
+    source: this.width,
+    computation: width =>
+      [this.margin.left, width - this.margin.right] as [number, number],
   });
-  private xScaleCache: { data: any; scale: d3.ScaleTime<number, number> } | undefined;
 
-  yScale = computed(() => {
-    if (!this.yScaleCache || this.yScaleCache.data !== this.dataSeries()) {
-      const allValues = Object.values(this.dataSeries()).flat().map(d => d.value);
-      this.yScaleCache = {
-        data: this.dataSeries(),
-        scale: d3.scaleLinear()
-          .domain([0, d3.max(allValues) || 0])
-          .range([this.height(), 0])
-      };
-    }
-    return this.yScaleCache.scale;
+  yScaleRange = linkedSignal({
+    source: this.height,
+    computation: height =>
+      [height - this.margin.bottom, this.margin.top] as [number, number],
   });
-  private yScaleCache: { data: any; scale: d3.ScaleLinear<number, number> } | undefined;
+
+  xScale = linkedSignal({
+    source: this.dataSeries,
+    computation: source => {
+      // timestamps are sorted. First and last timestamp of each entry define the maximal domain that is needed for this
+      const timeDomain = Object.values(source)
+        .flatMap(datalist => [
+          datalist[0].timestamp,
+          datalist[datalist.length - 1].timestamp,
+        ])
+        .reduce(
+          (acc, curr) => [Math.min(acc[0], curr), Math.max(acc[1], curr)],
+          [Infinity, -Infinity]
+        ) as [number, number];
+
+      return d3.scaleLinear().domain(timeDomain).range(this.xScaleRange());
+    },
+    equal: (a, b) =>
+      a.domain()[0] == b.domain()[0] &&
+      a.domain()[1] == b.domain()[1] &&
+      a.range()[0] == b.range()[0] &&
+      a.range()[1] == b.range()[1],
+  });
+
+  yScale = linkedSignal({
+    source: this.dataSeries,
+    computation: source => {
+      // timestamps are sorted. First and last timestamp of each entry define the maximal domain that is needed for this
+      const valueDomain = Object.values(source)
+        .flatMap(datalist => datalist.map(entry => entry.value)) // Alle 'value' Einträge extrahieren
+        .reduce(
+          (acc, curr) => [Math.min(acc[0], curr), Math.max(acc[1], curr)],
+          [Infinity, -Infinity]
+        ) as [number, number];
+
+      return d3.scaleLinear().domain(valueDomain).range(this.yScaleRange());
+    },
+    equal: (a, b) =>
+      a.domain()[0] == b.domain()[0] &&
+      a.domain()[1] == b.domain()[1] &&
+      a.range()[0] == b.range()[0] &&
+      a.range()[1] == b.range()[1],
+  });
 
   // Computed Signal for line
   line = computed(() => {
-    return d3.line<{ timestamp: number; value: number }>()
+    return d3
+      .line<{ timestamp: number; value: number }>()
       .x(d => this.xScale()(d.timestamp))
       .y(d => this.yScale()(d.value));
   });
 
-  updateGraph = effect(() => {
-    const currentData = this.dataSeries();
-    if (this.lastData !== currentData) {
-      this.initializeOrUpdateGraph();
-      this.lastData = currentData;
-    }
+  updateXAxies = effect(() => {
+    const xAxisElement = this.xAxisRef().nativeElement;
+    d3.select(xAxisElement)
+      .call(d3.axisBottom(this.xScale()))
+      .selectAll('text')
+      .attr('transform', 'rotate(-45)')
+      .style('text-anchor', 'end');
   });
 
-  ngOnInit(): void {
-    // Ensure the effect runs at least once after initialization
-    this.dataSeries(); // Trigger the effect by accessing the input
-  }
+  updateYAxis = effect(() => {
+    const AxisElement = this.yAxisRef().nativeElement;
+    d3.select(AxisElement)
+      .call(d3.axisLeft(this.yScale()))
+      .selectAll('text')
+      .attr('transform', 'rotate(-45)')
+      .style('text-anchor', 'end');
+  });
 
-  initializeOrUpdateGraph() {
-    const svg = d3.select(this.plotContainer().nativeElement);
+  trackWindowSize = effect(() => {
+    const svgElement = this.plotContainer().nativeElement;
 
-    // Clear existing content
-    svg.selectAll("*").remove();
+    // ResizeObserver für die SVG-Größenänderung
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        this.width.set(width);
+        this.height.set(height);
+      }
+    });
 
-    // Set up SVG dimensions
-    svg.attr('width', this.width())
-       .attr('height', this.height());
+    resizeObserver.observe(svgElement);
 
-    // Add axes
-    svg.append('g')
-       .attr('transform', `translate(0,${this.height()})`)
-       .call(d3.axisBottom(this.xScale()));
-
-    svg.append('g')
-       .call(d3.axisLeft(this.yScale()));
-
-    // Plot each series with downsampling
-    const downsampleFactor = 1;  // Adjust this based on your data size and performance needs
-    const dataEntries = Object.entries(this.dataSeries());
-    const allPaths = svg.selectAll('path')
-      .data(dataEntries.map(([_, points]) => this.downsample(points, downsampleFactor)))
-      .join('path')
-      .attr('fill', 'none')
-      .attr('stroke', 'steelblue')
-      .attr('stroke-width', 1.5)
-      .attr('d', this.line());
-  }
+    // Cleanup function when component is destroyed
+    return () => {
+      resizeObserver.unobserve(svgElement);
+    };
+  });
 }

@@ -25,6 +25,7 @@
     "electron": "^34.0.1"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
+    "electron-squirrel-startup": "^1.0.1",
+    "material-icons": "^1.13.13"
   }
 }

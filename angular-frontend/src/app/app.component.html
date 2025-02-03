@@ -8,17 +8,17 @@
   <!-- Hauptinhalt -->
   <main class="flex-1 flex flex-col p-4 space-y-4">
     <!-- Steuerleiste oben -->
-    <div
+    <!-- <div
       class="flex justify-between items-center bg-white p-3 rounded shadow max-h-48"
     >
       <app-device-selection #devices2 />
-    </div>
+    </div> -->
 
     <!-- Graph-Container -->
     <div
       class="flex-1 shrink bg-white shadow rounded p-4 flex justify-center items-center overflow-auto"
     >
-      @let dataSet = devices.dataService.data() | keyvalue;
+      @let dataSet = devices.dataService.limitedData() | keyvalue;
       @defer (when dataSet.length > 0; on idle) {
         <!-- Graph wird nur geladen, wenn Daten vorhanden sind -->
         <app-graph [dataSeries]="devices.dataService.data()"></app-graph>

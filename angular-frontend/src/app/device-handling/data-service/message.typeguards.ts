@@ -3,13 +3,13 @@
  */
 export type wsMessageFormats = string | omnAIScopeData;
 
-type omnAIScopeData = {
+interface omnAIScopeData {
   devices: string[];
   data: {
     timestamp: number;
     value: number[];
   }[];
-};
+}
 function isStringMessage(message: unknown): message is string {
   return typeof message === 'string';
 }

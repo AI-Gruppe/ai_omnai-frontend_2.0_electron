@@ -28,6 +28,16 @@ export class DataService {
   loadingDevices = signal<boolean>(false);
 
   data = signal<Record<string, DataFormat[]>>({});
+  limitedData = computed(() => {
+  const currentData = this.data();
+  const result: Record<string, DataFormat[]> = {};
+  for (const [uuid, dataArray] of Object.entries(currentData)) {
+    const n = dataArray.length /2000;
+    result[uuid] = dataArray.filter((_, index) => index % n === 0);
+  }
+
+  return result;
+});
 
   httpClient = inject(HttpClient);
   connect(): void {
@@ -46,7 +56,7 @@ export class DataService {
       this.isConnected.set(true);
     });
 
-    this.socket.addEventListener('message', (event) => {
+    this.socket.addEventListener('message', event => {
       let parsedMessage: unknown;
       try {
         parsedMessage = JSON.parse(event.data);
@@ -55,18 +65,18 @@ export class DataService {
       }
 
       if (messageTypeguards.isOmnAIDataMessage(parsedMessage)) {
-        console.log("parsedMsg", parsedMessage)
-        this.data.update((records) => {
+        console.log('parsedMsg', parsedMessage);
+        this.data.update(records => {
           parsedMessage.devices.forEach((uuid, index) => {
             const deviceData = records[uuid] ?? [];
-            const newDataPoints = parsedMessage.data.flatMap((point) => ({
+            const newDataPoints = parsedMessage.data.flatMap(point => ({
               timestamp: point.timestamp,
-              value: point.value[index]
-            }))
+              value: point.value[index],
+            }));
 
-            console.log(deviceData)
+            console.log(deviceData);
             records[uuid] = deviceData.concat(newDataPoints);
-            console.log(records[uuid])
+            console.log(records[uuid]);
           });
 
           return structuredClone(records);
@@ -82,7 +92,7 @@ export class DataService {
       this.socket = null;
     });
 
-    this.socket.addEventListener('error', (error) => {
+    this.socket.addEventListener('error', error => {
       console.error('WebSocket Fehler:', error);
     });
   }
@@ -104,7 +114,7 @@ export class DataService {
     const message =
       deviceUUIDS === null
         ? this.devices()
-            .map((device) => device.UUID)
+            .map(device => device.UUID)
             .join(' ')
         : deviceUUIDS.join(' ');
 
@@ -119,7 +129,7 @@ export class DataService {
         console.log('WebSocket jetzt geöffnet, sende Nachricht:', message);
         this.socket?.send(message);
       },
-      { once: true },
+      { once: true }
     );
   }
 
@@ -134,7 +144,7 @@ export class DataService {
       .pipe(tap(() => this.loadingDevices.set(false)))
       .subscribe({
         next: this.#updateDevicesFromBackendResponse.bind(this),
-        error: (err) => {
+        error: err => {
           console.error('Fehler beim Abrufen der UUIDs:', err);
         },
       });
