@@ -102,7 +102,7 @@ export class GraphComponent {
           [Infinity, -Infinity]
         ) as [number, number];
 
-      return d3.scaleLinear().domain(timeDomain).range(this.xScaleRange());
+      return d3.scaleLinear().domain(timeDomain).range(this.xScaleRange()).clamp(true);
     },
     equal: (a, b) =>
       a.domain()[0] == b.domain()[0] &&
@@ -122,7 +122,11 @@ export class GraphComponent {
           [Infinity, -Infinity]
         ) as [number, number];
 
-      return d3.scaleLinear().domain(valueDomain).range(this.yScaleRange());
+      return d3
+        .scaleLinear()
+        .domain(valueDomain)
+        .range(this.yScaleRange())
+        .clamp(true);
     },
     equal: (a, b) =>
       a.domain()[0] == b.domain()[0] &&
