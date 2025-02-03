@@ -35,10 +35,10 @@ import * as d3 from 'd3';
       <g
         #yAxis
         [attr.transform]="'translate(' + _xScale.range()[0] + ', 0)'"></g>
-      @for (curve of dataSeries() | keyvalue; track $index) {
+      @for (curve of pathData() | keyvalue; track $index) {
         <path
           [attr.transform]="'translate(' + _xScale.range()[0] + ',0 )'"
-          [attr.d]="line()(curve.value)"
+          [attr.d]="curve.value"
           [attr.stroke]="colors()[curve.key]"
           [attr.id]="curve.key"
           fill="none"></path>
@@ -137,6 +137,17 @@ export class GraphComponent {
       .line<{ timestamp: number; value: number }>()
       .x(d => this.xScale()(d.timestamp))
       .y(d => this.yScale()(d.value));
+  });
+
+  pathData = computed(() => {
+    const data = this.dataSeries();
+    return Object.entries(data).reduce(
+      (acc, [key, value]) => {
+        acc[key] = this.line()(value) ?? '';
+        return acc;
+      },
+      {} as Record<string, string>
+    );
   });
 
   updateXAxies = effect(() => {

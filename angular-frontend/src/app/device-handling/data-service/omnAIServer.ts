@@ -133,7 +133,7 @@ export class ServerDescription {
       this.isConnected.set(true);
       const devices: string = this.devices()
         .map(value => value.UUID)
-        .join();
+        .join(" ");
       this.#socket?.send(devices);
     });
 
