@@ -7,7 +7,6 @@ import {
   ElementRef,
   input,
   linkedSignal,
-  OnInit,
   signal,
   viewChild,
 } from '@angular/core';
@@ -162,7 +161,7 @@ export class GraphComponent {
 
     // ResizeObserver für die SVG-Größenänderung
     const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         const { width, height } = entry.contentRect;
         this.width.set(width);
         this.height.set(height);

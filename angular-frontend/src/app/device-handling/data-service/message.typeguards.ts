@@ -22,7 +22,7 @@ function isOmnAIDataMessage(message: unknown): message is omnAIScopeData {
   if (!('devices' in msg) || !('data' in msg)) return false;
   if (
     !Array.isArray(msg.devices) ||
-    !msg.devices.every((d: any) => typeof d === 'string')
+    !msg.devices.every((d: unknown) => typeof d === 'string')
   ) {
     return false;
   }
