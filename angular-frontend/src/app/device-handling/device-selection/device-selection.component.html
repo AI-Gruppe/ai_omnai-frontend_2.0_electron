@@ -1,4 +1,4 @@
-<div class="flex-wrap p-4 space-y-4 flex flex-col gap-4">
+<div class="flex-wrap p-auto space-y-4 flex flex-col gap-4">
   <h2 class="text-xl font-bold text-gray-800">Geräteauswahl</h2>
 
   <!-- Server List -->
@@ -63,17 +63,8 @@
     </div>
   }
 
-  <!-- Übersicht der ausgewählten Geräte -->
-  @if (selectedUUIDs().size > 0) {
-    <div class="p-2 bg-gray-100 rounded-md shadow-sm">
-      <h3 class="text-md font-semibold mb-1 text-gray-700">
-        Ausgewählte Geräte:
-      </h3>
-      <ul class="list-disc pl-4 text-sm text-gray-800">
-        @for (uuid of selectedUUIDs(); track uuid) {
-          <li>{{ uuid }}</li>
-        }
-      </ul>
-    </div>
-  }
+
+  <button class="bg-omni-red-700 rounded-md px-4 py-2" (click)="addNewDeviceServer()">
+    Server hinzufügen
+  </button>
 </div>
