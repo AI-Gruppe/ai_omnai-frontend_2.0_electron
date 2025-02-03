@@ -80,9 +80,4 @@ export class DataService {
     if (server) server.disconnect();
   }
 
-  requestDataFromDeviceUUIDs(serverURL: string, deviceUUIDS: string[] | null) {
-    const server = this.servers()[serverURL];
-    if (!server) throw new Error(`Server ${serverURL} not found`);
-    server.requestDataFromDeviceUUIDs(deviceUUIDS);
-  }
 }

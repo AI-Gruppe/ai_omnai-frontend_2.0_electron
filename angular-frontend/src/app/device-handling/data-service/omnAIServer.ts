@@ -135,7 +135,6 @@ export class ServerDescription {
       const devices: string = this.devices()
         .map(value => value.UUID)
         .join();
-      console.log(devices);
       this.#socket?.send(devices);
     });
 
@@ -156,6 +155,7 @@ export class ServerDescription {
               value: point.value[index],
             }));
 
+            // ignore datapoints when timestamp was earlier
             if (
               existingData.length > 0 &&
               newDataPoints[0].timestamp < existingData[0].timestamp
@@ -184,39 +184,10 @@ export class ServerDescription {
 
   disconnect(): void {
     if (this.#socket) {
-      console.log('Schließe WebSocket Verbindung...');
       this.#socket.close();
     } else {
-      console.log('Keine aktive WebSocket Verbindung.');
     }
     this.startFetchingDevices();
-  }
-
-  requestDataFromDeviceUUIDs(deviceUUIDS: string[] | null) {
-    if (!this.isConnected() || !this.#socket) {
-      this.connect();
-    }
-
-    const message =
-      deviceUUIDS === null
-        ? this.devices()
-            .map(device => device.UUID)
-            .join(' ')
-        : deviceUUIDS.join(' ');
-
-    if (this.#socket?.readyState === WebSocket.OPEN) {
-      this.#socket.send(message);
-      return;
-    }
-
-    this.#socket?.addEventListener(
-      'open',
-      () => {
-        console.log('WebSocket jetzt geöffnet, sende Nachricht:', message);
-        this.#socket?.send(message);
-      },
-      { once: true }
-    );
   }
 
   stopFetchingDevices() {
