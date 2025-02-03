@@ -31,7 +31,8 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    autoHideMenuBar: true
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, "res", "Icon.ico")
   });
  const indexPath = path.join(__dirname, "res", "angular", "browser", "index.html");
   mainWindow.loadFile(indexPath);
