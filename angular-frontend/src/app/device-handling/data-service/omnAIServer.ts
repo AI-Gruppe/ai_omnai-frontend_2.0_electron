@@ -22,6 +22,22 @@ export class ServerDescription {
   data = this.#data.asReadonly();
   devices = this.#devices.asReadonly();
   serverIsReachable = signal<boolean>(false);
+  /**
+   * Signal for managing the selection of devices.
+   *
+   * **Functionality:**
+   * - Stores a mapping of UUIDs to a boolean value (`true` means selected, `false` means not selected).
+   * - The selection persists even if the device list (`#devices`) updates.
+   * - When new devices are added, they are initialized as not selected (`false`).
+   * - If devices are removed, they are also removed from the selection.
+   *
+   * **Parameters:**
+   * - `source`: The current list of devices (`#devices`), which is regularly updated.
+   * - `computation`: A function that generates a new selection mapping.
+   *   - `currentDevices`: The current list of devices.
+   *   - `previous`: The previous selection mapping (containing the last known values).
+   *   - **Returns:** A new object with an updated selection, preserving previous values.
+   */
 
   readonly selectedDevices = linkedSignal<
     DeviceInformation[],
@@ -63,6 +79,31 @@ export class ServerDescription {
   ) {
     this.startFetchingDevices();
   }
+
+  /**
+   * Starts the periodic retrieval of the device list.
+   *
+   * This method uses a `timer` to send an HTTP request at regular intervals
+   * to fetch the current list of available devices from the server.
+   *
+   * Workflow:
+   * 1. If a subscription (`deviceFetchSubscription`) already exists, it is terminated
+   *    to prevent multiple calls or duplicate subscriptions.
+   * 2. A new subscription is started:
+   *    - `timer(0, this.fetchInterval)`: Creates a timed observable stream
+   *      that starts immediately (`0 ms delay`) and then triggers again at `fetchInterval` intervals
+   *      (e.g., every 5000 ms = 5 seconds).
+   *    - On each execution, `getUUIDs()` is called to fetch the list of devices from the server.
+   * 3. The `subscribe` method processes the response:
+   *    - If the request is successful (`next` callback), `serverIsReachable` is set to `true`,
+   *      indicating that the server is reachable.
+   *    - If an error occurs (`error` callback), `serverIsReachable` is set to `false`,
+   *      indicating that the server might be unavailable.
+   *
+   * Important:
+   * - This method continues running until `stopFetchingDevices()` is called,
+   *   which unsubscribes from the stream and stops the periodic requests.
+   */
 
   private startFetchingDevices(): void {
     if (this.deviceFetchSubscription) {
@@ -111,6 +152,22 @@ export class ServerDescription {
     });
   }
 
+  /**
+   * Establishes a WebSocket connection to the server.
+   *
+   * **Workflow:**
+   * 1. Stops the periodic retrieval of the device list since we now have a real-time connection.
+   * 2. Checks if an active WebSocket connection already exists. If so, nothing happens.
+   * 3. Creates a new WebSocket connection to the server.
+   * 4. Handles various WebSocket events (`open`, `message`, `close`).
+   *
+   * **Why?**
+   * - WebSockets enable real-time communication, eliminating the need for constant data polling.
+   * - If a connection is already open, no new one is created (`if (this.#socket && this.#socket.readyState === WebSocket.OPEN)`).
+   * - After opening (`open` event), a message is sent to the server to request device data.
+   * - Incoming messages (`message` event) are processed and stored.
+   * - If the connection is closed (`close` event), the status is reset.
+   */
   connect(): void {
     this.stopFetchingDevices();
     if (this.#socket && this.#socket.readyState === WebSocket.OPEN) {
@@ -130,6 +187,12 @@ export class ServerDescription {
       this.#socket?.send(devices);
     });
 
+    /**
+     * Event: `message` - Triggered when a message is received from the server.
+     * - The first two messages are ignored (`ignoreCounter`), as they may contain connection initialization data.
+     * - The received data is parsed as JSON.
+     * - If the data follows a valid OmnAI structure, the sensor data is stored.
+     */
     let ignoreCounter = 0;
     this.#socket.addEventListener('message', event => {
       if (ignoreCounter < 2) {
