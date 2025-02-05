@@ -1,17 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { signal, computed, linkedSignal } from '@angular/core';
 import { Subscription, timer, tap } from 'rxjs';
-import { DeviceOverview, messageTypeguards } from './message.typeguards';
-
-export interface DataFormat {
-  timestamp: number;
-  value: number;
-}
-
-export interface DeviceInformation {
-  UUID: string;
-  color: { r: number; g: number; b: number };
-}
+import { messageTypeguards } from './message.typeguards';
+import { DataFormat, DeviceInformation, DeviceOverview } from './data.models';
 
 function getWSURL(serverURL: string): string {
   return `ws://${serverURL}/ws`;
@@ -133,7 +124,7 @@ export class ServerDescription {
       this.isConnected.set(true);
       const devices: string = this.devices()
         .map(value => value.UUID)
-        .join(" ");
+        .join(' ');
       this.#socket?.send(devices);
     });
 
