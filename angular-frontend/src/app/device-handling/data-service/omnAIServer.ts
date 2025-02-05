@@ -182,12 +182,16 @@ export class ServerDescription {
     this.#socket = new WebSocket(wsULR);
 
     this.#socket.addEventListener('open', () => {
+      if (!this.#socket) return;
+
       this.#data.set({});
       this.isConnected.set(true);
-      const devices: string = this.devices()
-        .map(value => value.UUID)
-        .join(' ');
-      this.#socket?.send(devices);
+
+      this.#socket.send(
+        this.devices()
+          .map(d => d.UUID)
+          .join(' ')
+      );
     });
 
     /**
@@ -198,6 +202,7 @@ export class ServerDescription {
      */
     let ignoreCounter = 0;
     this.#socket.addEventListener('message', event => {
+      if (!this.#socket) return;
       if (ignoreCounter < 2) {
         // the first messages contain garabge smtimes
         ignoreCounter++;
@@ -229,6 +234,7 @@ export class ServerDescription {
     });
 
     this.#socket.addEventListener('close', () => {
+      if (!this.#socket) return;
       this.isConnected.set(false);
       this.#socket = null;
     });
