@@ -21,7 +21,7 @@ export class ServerDescription {
   private deviceFetchSubscription: Subscription | null = null;
   data = this.#data.asReadonly();
   devices = this.#devices.asReadonly();
-  serverIsReachable = signal<boolean>(false);
+  readonly serverIsReachable = signal<boolean>(false);
   readonly samplingRate = signal<number>(2000);
   /**
    * Signal for managing the selection of devices.
