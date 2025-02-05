@@ -44,12 +44,13 @@ export class ServerDescription {
     DeviceInformation[],
     Record<string, boolean>
   >({
-    source: this.#devices,
+    source: () => this.#devices(),
     computation: (currentDevices, previous) => {
-      const currentSelection = previous?.value ?? {};
+      const previousSelection = previous?.value ?? {};
       const newSelection: Record<string, boolean> = {};
+
       for (const device of currentDevices) {
-        newSelection[device.UUID] = currentSelection[device.UUID] ?? false;
+        newSelection[device.UUID] = previousSelection[device.UUID] ?? false;
       }
 
       return newSelection as Record<string, boolean>;
