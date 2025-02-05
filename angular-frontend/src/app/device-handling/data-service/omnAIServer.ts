@@ -56,13 +56,11 @@ export class ServerDescription {
       return newSelection as Record<string, boolean>;
     },
   });
-  numSelectedDevices = computed(() => {
-    const devices = this.selectedDevices();
-    const value = Object.values(devices).filter(
-      selected => selected === true
-    ).length;
-    return value;
-  });
+
+  numSelectedDevices = computed(
+    () =>
+      Object.values(this.selectedDevices()).filter(selected => selected).length
+  );
 
   limitedData = computed(() => {
     const currentData = this.data();
