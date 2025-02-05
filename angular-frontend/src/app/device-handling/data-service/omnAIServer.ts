@@ -129,6 +129,7 @@ export class ServerDescription {
       });
   }
 
+  //TODO: Why the data is not in the right datastructure and has to be mapped ?
   private getUUIDs() {
     return this.httpClient
       .get<DeviceOverview>(getDevicesURL(this.serverURL))
