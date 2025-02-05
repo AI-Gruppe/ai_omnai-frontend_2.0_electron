@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { signal, computed, linkedSignal } from '@angular/core';
-import { Subscription, timer, tap } from 'rxjs';
+import { Subscription, timer, tap, exhaustMap } from 'rxjs';
 import { messageTypeguards } from './message.typeguards';
 import { DataFormat, DeviceInformation, DeviceOverview } from './data.models';
 
@@ -68,20 +68,22 @@ export class ServerDescription {
     if (this.deviceFetchSubscription) {
       this.deviceFetchSubscription.unsubscribe();
     }
-    this.deviceFetchSubscription = timer(0, this.fetchInterval).subscribe(
-      () => {
-        this.getUUIDs().subscribe({
-          next: () => {
-            this.serverIsReachable.set(true);
-          },
-          error: () => {
-            console.error('Error fetching devices for', this.serverURL);
-            this.serverIsReachable.set(false);
-            // Here you might want to stop fetching devices or handle the error differently
-          },
-        });
-      }
-    );
+
+    // Starts a new `timer`-based observable stream that begins immediately
+    // and then sends requests to the server at fixed "fetchInterval" intervals.
+    // exhaustMap() prevents parallel HTTP requests / race conditions, ensuring that
+    // if fetching the UUIDs takes longer than the fetchInterval, new requests
+    // are paused until the current request is completed.
+
+    this.deviceFetchSubscription = timer(0, this.fetchInterval)
+      .pipe(exhaustMap(() => this.getUUIDs()))
+      .subscribe({
+        next: () => this.serverIsReachable.set(true),
+        error: () => {
+          console.error('Error fetching devices for', this.serverURL);
+          this.serverIsReachable.set(false);
+        },
+      });
   }
 
   private getUUIDs() {
