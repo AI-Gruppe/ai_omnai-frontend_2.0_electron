@@ -200,14 +200,18 @@ export class ServerDescription {
      * - The received data is parsed as JSON.
      * - If the data follows a valid OmnAI structure, the sensor data is stored.
      */
+
+    const countOfFirstIgnoredMessages = 2;
     let ignoreCounter = 0;
+
     this.#socket.addEventListener('message', event => {
       if (!this.#socket) return;
-      if (ignoreCounter < 2) {
+      if (ignoreCounter < countOfFirstIgnoredMessages) {
         // the first messages contain garabge smtimes
         ignoreCounter++;
         return;
       }
+
       let parsedMessage: unknown;
       try {
         parsedMessage = JSON.parse(event.data);
