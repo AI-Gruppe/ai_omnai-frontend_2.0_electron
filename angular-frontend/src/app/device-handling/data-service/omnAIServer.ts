@@ -22,6 +22,7 @@ export class ServerDescription {
   data = this.#data.asReadonly();
   devices = this.#devices.asReadonly();
   serverIsReachable = signal<boolean>(false);
+  readonly samplingRate = signal<number>(2000);
   /**
    * Signal for managing the selection of devices.
    *
@@ -64,12 +65,14 @@ export class ServerDescription {
 
   limitedData = computed(() => {
     const currentData = this.data();
-    const result: Record<string, DataFormat[]> = {};
+    const downsampledData: Record<string, DataFormat[]> = {};
+    const rate = this.samplingRate();
+
     for (const [uuid, dataArray] of Object.entries(currentData)) {
-      const n = Math.max(1, Math.floor(dataArray.length / 2000)); 
-      result[uuid] = dataArray.filter((_, index) => index % n === 0);
+      const n = Math.max(1, Math.floor(dataArray.length / rate));
+      downsampledData[uuid] = dataArray.filter((_, index) => index % n === 0);
     }
-    return result;
+    return downsampledData;
   });
 
   constructor(
@@ -249,5 +252,7 @@ export class ServerDescription {
       this.deviceFetchSubscription.unsubscribe();
       this.deviceFetchSubscription = null;
     }
+  setSamplingRate(newRate: number): void {
+    this.samplingRate.set(newRate);
   }
 }
