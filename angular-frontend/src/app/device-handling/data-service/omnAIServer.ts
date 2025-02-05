@@ -262,6 +262,7 @@ export class ServerDescription {
       this.deviceFetchSubscription.unsubscribe();
       this.deviceFetchSubscription = null;
     }
+  }
   setSamplingRate(newRate: number): void {
     this.samplingRate.set(newRate);
   }
