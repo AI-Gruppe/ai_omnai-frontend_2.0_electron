@@ -4,25 +4,26 @@ import { Subscription, timer, tap, exhaustMap } from 'rxjs';
 import { messageTypeguards } from './message.typeguards';
 import { DataFormat, DeviceInformation, DeviceOverview } from './data.models';
 
-function getWSURL(serverURL: string): string {
+function createWSURL(serverURL: string): string {
   return `ws://${serverURL}/ws`;
 }
 
-function getDevicesURL(serverURL: string): string {
+function createDeviceURL(serverURL: string): string {
   return `http://${serverURL}/UUID`;
 }
 
 export class ServerDescription {
   readonly #devices = signal<DeviceInformation[]>([]);
   readonly #data = signal<Record<string, DataFormat[]>>({});
+  data = this.#data.asReadonly();
+  devices = this.#devices.asReadonly();
   #socket: WebSocket | null = null;
   readonly isConnected = signal<boolean>(false);
   readonly wsConnected = signal<boolean>(false);
-  private deviceFetchSubscription: Subscription | null = null;
-  data = this.#data.asReadonly();
-  devices = this.#devices.asReadonly();
   readonly serverIsReachable = signal<boolean>(false);
   readonly samplingRate = signal<number>(2000);
+  private deviceFetchSubscription: Subscription | null = null;
+
   /**
    * Signal for managing the selection of devices.
    *
@@ -95,7 +96,7 @@ export class ServerDescription {
    *    - `timer(0, this.fetchInterval)`: Creates a timed observable stream
    *      that starts immediately (`0 ms delay`) and then triggers again at `fetchInterval` intervals
    *      (e.g., every 5000 ms = 5 seconds).
-   *    - On each execution, `getUUIDs()` is called to fetch the list of devices from the server.
+   *    - On each execution, `fetchDevices()` is called to fetch the list of devices from the server.
    * 3. The `subscribe` method processes the response:
    *    - If the request is successful (`next` callback), `serverIsReachable` is set to `true`,
    *      indicating that the server is reachable.
@@ -119,7 +120,7 @@ export class ServerDescription {
     // are paused until the current request is completed.
 
     this.deviceFetchSubscription = timer(0, this.fetchInterval)
-      .pipe(exhaustMap(() => this.getUUIDs()))
+      .pipe(exhaustMap(() => this.fetchDevices()))
       .subscribe({
         next: () => this.serverIsReachable.set(true),
         error: () => {
@@ -129,10 +130,9 @@ export class ServerDescription {
       });
   }
 
-  //TODO: Why the data is not in the right datastructure and has to be mapped ?
-  private getUUIDs() {
+  private fetchDevices() {
     return this.httpClient
-      .get<DeviceOverview>(getDevicesURL(this.serverURL))
+      .get<DeviceOverview>(createDeviceURL(this.serverURL))
       .pipe(
         tap(data => {
           if (data.devices && data.colors) {
@@ -146,7 +146,7 @@ export class ServerDescription {
       );
   }
 
-  toggleDevice(uuid: string) {
+  toggleSelectStateOfDevice(uuid: string) {
     console.log(uuid, this.selectedDevices()[uuid]);
     this.selectedDevices.update(value => {
       value[uuid] = !value[uuid];
@@ -172,14 +172,15 @@ export class ServerDescription {
    * - If the connection is closed (`close` event), the status is reset.
    */
   connect(): void {
+    // Why the fetching stops when websocket is connected ?
     this.stopFetchingDevices();
+
     if (this.#socket && this.#socket.readyState === WebSocket.OPEN) {
-      console.log('WebSocket ist bereits verbunden.');
+      console.log('WebSocket is already connected.');
       return;
     }
-    const wsULR = getWSURL(this.serverURL);
-    if (!wsULR) throw new Error('No server found');
-    this.#socket = new WebSocket(wsULR);
+
+    this.#socket = new WebSocket(createWSURL(this.serverURL));
 
     this.#socket.addEventListener('open', () => {
       if (!this.#socket) return;
