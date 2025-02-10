@@ -1,12 +1,13 @@
 <div class="flex h-screen w-screen bg-gray-100 overflow-auto">
   <!-- Sidemenu -->
-  <aside class="h-full w-64 bg-omni-schwarz-700 text-white flex flex-col p-4  gap-8 rounded-r-lg">
+  <aside
+    class="h-full w-64 bg-omni-schwarz-700 text-white flex flex-col p-4 gap-8 rounded-r-lg">
     <img src="logo/OmnAIScope-logo-weiss.png" alt="OmnAIScope Logo" />
     <app-device-selection #devices />
   </aside>
 
   <!-- Main content -->
-  <main class="flex-1 flex flex-col p-4 gap-4">
+  <main class="flex-1 flex flex-col p-4 gap-4 w-full">
     <!-- controlbar top  -->
     <!-- <div
       class="flex justify-between items-center bg-white p-3 rounded shadow max-h-48"
@@ -26,8 +27,9 @@
       }
     </div>
 
+    <!-- DeviceCards -->
     <div class="ui-card">
-      <app-device-overview class="flex-1"></app-device-overview>
+      <app-device-overview class="w-full"></app-device-overview>
     </div>
   </main>
 </div>
