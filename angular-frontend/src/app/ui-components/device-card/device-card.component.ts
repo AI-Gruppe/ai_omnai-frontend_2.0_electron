@@ -10,8 +10,17 @@ import { CommonModule } from '@angular/common';
   imports: [MatCheckboxModule, CommonModule],
   template: `
     <div
-      class="flex flex-col size-full bg-omni-schwarz-700 min-h-[30vh] rounded-md p-4 shadow-xl">
-      <!-- Header mit Server URL und Connect/Disconnect Button -->
+      class="flex flex-col size-full bg-omni-schwarz-700 min-h-[30vh] rounded-md p-4 shadow-xl relative">
+      @if (!server().serverIsReachable()) {
+        <div
+          class="absolute inset-0 w-full h-full bg-gray-600/60 flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-4xl mr-2"
+            >cloud_off</span
+          >
+          <span class="text-white text-lg">Server unerreichbar</span>
+        </div>
+      }
+      <!-- Header with IP and Play Button -->
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-center text-omni-schwarz-100 p-2">
           {{ server().serverURL }}
@@ -37,16 +46,16 @@ import { CommonModule } from '@angular/common';
         </button>
       </div>
 
-      <!-- Globaler Toggle für alle Geräte -->
+      <!-- Globale Toggle for all Devices -->
       <div class="flex items-center gap-8 p-2 pl-4 border-b border-gray-500">
         <input
           type="checkbox"
           (change)="toggleAllDevices($event)"
           class="h-5 w-5 border-2 rounded cursor-pointer bg-white checked:bg-blue-500 checked:border-blue-600" />
-        <span class="text-lg text-omni-schwarz-100">Devices</span>
+        <span class="text-lg text-omni-schwarz-100">Geräte</span>
       </div>
 
-      <!-- Liste der Geräte -->
+      <!-- List of all Devices -->
       @for (device of server().devices(); track device) {
         <div class="flex items-center gap-8 p-4 rounded-lg">
           <input
