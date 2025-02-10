@@ -6,7 +6,7 @@
   </aside>
 
   <!-- Main content -->
-  <main class="flex-1 flex flex-col p-4 space-y-4">
+  <main class="flex-1 flex flex-col p-4 gap-4">
     <!-- controlbar top  -->
     <!-- <div
       class="flex justify-between items-center bg-white p-3 rounded shadow max-h-48"
@@ -15,12 +15,9 @@
     </div> -->
 
     <!-- Graph-Container -->
-    <div
-      class="flex-1 shrink bg-white shadow rounded p-4 flex justify-center items-center overflow-auto"
-    >
+    <div class="ui-card">
       @let dataSet = devices.dataService.limitedData() | keyvalue;
       @defer (when dataSet.length > 0; on idle) {
-        <!-- Graph wird nur geladen, wenn Daten vorhanden sind -->
         <app-graph [dataSeries]="devices.dataService.limitedData()" [colors]="devices.dataService.curveColors()"></app-graph>
       } @loading {
         <p class="text-gray-500">Warte auf Daten...</p>
