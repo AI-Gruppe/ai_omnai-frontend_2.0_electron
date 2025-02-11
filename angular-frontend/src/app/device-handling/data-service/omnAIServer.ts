@@ -58,6 +58,11 @@ export class ServerDescription {
     },
   });
 
+  readonly isDeviceSelected = computed(() => (uuid: string) => {
+    const selected = this.selectedDevices()[uuid] ?? false;
+
+    return selected;
+  });
   numSelectedDevices = computed(
     () =>
       Object.values(this.selectedDevices()).filter(selected => selected).length
@@ -151,6 +156,18 @@ export class ServerDescription {
     this.selectedDevices.update(value => {
       value[uuid] = !value[uuid];
       console.log(uuid, value[uuid]);
+  selectDevice(uuid: string) {
+    console.log(uuid, this.selectedDevices()[uuid]);
+    this.selectedDevices.update(value => {
+      value[uuid] = true;
+      return structuredClone(value);
+    });
+  }
+
+  unselectDevice(uuid: string) {
+    console.log(uuid, this.selectedDevices()[uuid]);
+    this.selectedDevices.update(value => {
+      value[uuid] = false;
       return structuredClone(value);
     });
   }
@@ -187,10 +204,10 @@ export class ServerDescription {
 
       this.#data.set({});
       this.isConnected.set(true);
-
       this.#socket.send(
-        this.devices()
-          .map(d => d.UUID)
+        Object.entries(this.selectedDevices())
+          .filter(([_, isSelected]) => isSelected)
+          .map(([uuid]) => uuid)
           .join(' ')
       );
     });
