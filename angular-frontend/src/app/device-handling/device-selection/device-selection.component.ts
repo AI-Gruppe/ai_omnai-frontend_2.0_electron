@@ -48,4 +48,11 @@ export class DeviceSelectionComponent {
       }
     });
   }
+  toogleAllDevicesOfAllServers() {
+    this.dataService.toogleAllDevicesOfAllServers();
+  }
+
+  toogleCurrentDevicesFromAllServers() {
+    this.dataService.connectCurrentChoosenDevicesOfAllServers();
+  }
 }
