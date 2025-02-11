@@ -156,6 +156,9 @@ export class ServerDescription {
     this.selectedDevices.update(value => {
       value[uuid] = !value[uuid];
       console.log(uuid, value[uuid]);
+      return structuredClone(value);
+    });
+  }
   selectDevice(uuid: string) {
     console.log(uuid, this.selectedDevices()[uuid]);
     this.selectedDevices.update(value => {
