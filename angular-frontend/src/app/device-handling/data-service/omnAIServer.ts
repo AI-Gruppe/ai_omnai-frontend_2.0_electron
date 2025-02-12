@@ -146,6 +146,8 @@ export class ServerDescription {
               color: data.colors[index]?.color ?? { r: 0, g: 0, b: 0 },
             }));
             this.#devices.set(mappedDevices);
+          } else {
+            this.#devices.set([]);
           }
         })
       );
