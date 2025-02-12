@@ -28,10 +28,10 @@
       <button
         class="rounded-md px-4 text-slate-200 py-2 w-fit font-bold flex items-center justify-center gap-2 text-sm shadow-lg"
         (click)="dataService.connectAllDevicesOfAllServers()"
-        [disabled]="noServerReachable"
+        [disabled]="noServerReachable || noDeviceSelected"
         [ngClass]="{
-          'bg-gray-500': noServerReachable,
-          'bg-green-500': !noServerReachable,
+          'bg-gray-500': noServerReachable || noDeviceSelected,
+          'bg-green-500': !noServerReachable && !noDeviceSelected,
         }">
         Alle Geräte verbinden
         <span class="material-symbols-outlined text-3xl"> play_circle </span>
