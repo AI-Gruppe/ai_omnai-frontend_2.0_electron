@@ -23,7 +23,6 @@ export class DataService {
     }
     return combinedData;
   });
-
   limitedData = computed(() => {
     const combinedData: Record<string, DataFormat[]> = {};
     for (const [serverURL, server] of Object.entries(this.servers())) {
@@ -37,7 +36,6 @@ export class DataService {
     }
     return combinedData;
   });
-
   noServerReachable = computed(() => {
     const servers = Object.values(this.servers());
     return (
@@ -111,7 +109,7 @@ export class DataService {
     if (server) server.disconnect();
   }
 
-  enableAllDevicesOfServer(serverURL: string) {
+  selectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
     if (server)
       server.devices().map(device => {
@@ -119,7 +117,7 @@ export class DataService {
       });
   }
 
-  disableAllDevicesOfServer(serverURL: string) {
+  unselectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
     if (server)
       server.devices().map(device => {
@@ -141,21 +139,21 @@ export class DataService {
 
   disconnectCurrentChoosenDevicesOfAllServers(): void {
     Object.values(this.servers()).forEach(server => {
-      this.disableAllDevicesOfServer(server.serverURL);
+      this.unselectAllDevicesOfServer(server.serverURL);
       this.disconnect(server.serverURL);
     });
   }
 
   connectAllDevicesOfAllServers(): void {
     Object.values(this.servers()).forEach(server => {
-      this.enableAllDevicesOfServer(server.serverURL);
+      this.selectAllDevicesOfServer(server.serverURL);
       this.connect(server.serverURL);
     });
   }
 
   disconnectAllDevicesOfAllServers(): void {
     Object.values(this.servers()).forEach(server => {
-      this.disableAllDevicesOfServer(server.serverURL);
+      this.unselectAllDevicesOfServer(server.serverURL);
       this.disconnect(server.serverURL);
     });
   }
