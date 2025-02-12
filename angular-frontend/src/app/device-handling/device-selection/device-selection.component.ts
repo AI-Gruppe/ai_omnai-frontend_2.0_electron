@@ -49,10 +49,10 @@ export class DeviceSelectionComponent {
     });
   }
   toogleAllDevicesOfAllServers() {
-    this.dataService.toogleAllDevicesOfAllServers();
+    this.dataService.toggleAllServerDevicesBasedOnConnectionState();
   }
 
   toogleCurrentDevicesFromAllServers() {
-    this.dataService.connectCurrentChoosenDevicesOfAllServers();
+    this.dataService.connectSelectedDevicesOfAllServers();
   }
 }
