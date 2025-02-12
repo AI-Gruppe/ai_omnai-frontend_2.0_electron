@@ -61,11 +61,43 @@ export class DataService {
 
   noDeviceSelected = computed(() => {
     const servers = Object.values(this.servers());
-    const noDeviceSelected = servers.every(server =>
+    const areNoDevicesSelected = servers.every(server =>
       server.devices().every(device => !server.isDeviceSelected()(device.UUID))
     );
 
-    return noDeviceSelected;
+    return areNoDevicesSelected;
+  });
+
+  allDevicesSelected = computed(() => {
+    const servers = Object.values(this.servers());
+    if (servers.length === 0) return true;
+    const areAllDevicesSelected = servers.every(server =>
+      server.devices().every(device => server.isDeviceSelected()(device.UUID))
+    );
+
+    return areAllDevicesSelected;
+  });
+
+  allSelectedDevicesConnected = computed(() => {
+    const servers = Object.values(this.servers());
+
+    if (servers.length === 0) return true;
+    return servers.every(server => {
+      const selectedDevices = server
+        .devices()
+        .filter(device => server.isDeviceSelected()(device.UUID));
+      return selectedDevices.length === 0 || server.isConnected();
+    });
+  });
+  allDevicesConnected = computed(() => {
+    const servers = Object.values(this.servers());
+    if (servers.length === 0) return true;
+
+    return servers.every(
+      server =>
+        server.isConnected() &&
+        server.devices().every(device => server.isDeviceSelected()(device.UUID))
+    );
   });
 
   // these colors can be used as fill colors
