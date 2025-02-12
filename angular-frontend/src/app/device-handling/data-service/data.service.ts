@@ -53,12 +53,10 @@ export class DataService {
       servers.length === 0 || servers.every(server => !server.isConnected())
     );
   });
-
   devicesAvailable = computed(() => {
     const servers = Object.values(this.servers());
     return servers.some(server => server.devices().length > 0);
   });
-
   noDeviceSelected = computed(() => {
     const servers = Object.values(this.servers());
     const areNoDevicesSelected = servers.every(server =>
@@ -67,7 +65,6 @@ export class DataService {
 
     return areNoDevicesSelected;
   });
-
   allDevicesSelected = computed(() => {
     const servers = Object.values(this.servers());
     if (servers.length === 0) return true;
@@ -77,7 +74,6 @@ export class DataService {
 
     return areAllDevicesSelected;
   });
-
   allSelectedDevicesConnected = computed(() => {
     const servers = Object.values(this.servers());
 
@@ -157,22 +153,15 @@ export class DataService {
       });
   }
 
-  toogleAllDevicesOfAllServers() {
+  toggleAllServerDevicesBasedOnConnectionState() {
     if (this.allServersConnected()) {
-      this.disconnectAllDevicesOfAllServers();
+      this.disconnectAndUnselectAllDevicesOfAllServers();
     } else this.connectAllDevicesOfAllServers();
   }
 
-  connectCurrentChoosenDevicesOfAllServers(): void {
+  connectSelectedDevicesOfAllServers(): void {
     Object.values(this.servers()).forEach(server => {
       this.connect(server.serverURL);
-    });
-  }
-
-  disconnectCurrentChoosenDevicesOfAllServers(): void {
-    Object.values(this.servers()).forEach(server => {
-      this.unselectAllDevicesOfServer(server.serverURL);
-      this.disconnect(server.serverURL);
     });
   }
 
@@ -183,7 +172,7 @@ export class DataService {
     });
   }
 
-  disconnectAllDevicesOfAllServers(): void {
+  disconnectAndUnselectAllDevicesOfAllServers(): void {
     Object.values(this.servers()).forEach(server => {
       this.unselectAllDevicesOfServer(server.serverURL);
       this.disconnect(server.serverURL);
