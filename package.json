@@ -1,6 +1,6 @@
 {
   "name": "omnAIView",
-  "version": "1.0.5",
+  "version": "2.1.0",
   "main": "electron/main.js",
   "scripts": {
     "prestart": "npm --prefix angular-frontend run build",
