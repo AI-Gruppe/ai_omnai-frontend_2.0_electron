@@ -4,10 +4,30 @@
 
     <!-- Button group -->
     <div class="flex gap-2">
-      @let noServerConnected = dataService.noServerConnected();
       @let noServerReachable = dataService.noServerReachable();
+      @let noServerConnected = dataService.noServerConnected();
       @let noDeviceSelected = dataService.noDeviceSelected();
+      @let allSelectedDevicesConnected =
+        dataService.allSelectedDevicesConnected();
+      @let allDevicesConnected = dataService.allDevicesConnected();
       @let devicesAvaiable = dataService.devicesAvailable();
+
+      <!-- Definierte Variablen für Zustände -->
+      @let disableDisconnectAll = noServerConnected || noDeviceSelected;
+      @let disableConnectAll =
+        noServerReachable || !devicesAvaiable || allDevicesConnected;
+      @let disableConnectSelected =
+        noServerReachable ||
+        noDeviceSelected ||
+        allSelectedDevicesConnected ||
+        allDevicesConnected;
+
+      @let disconnectAllClass =
+        disableDisconnectAll ? 'bg-gray-500' : 'bg-omni-red-500';
+      @let connectAllClass = disableConnectAll ? 'bg-gray-500' : 'bg-green-500';
+      @let connectSelectedClass =
+        disableConnectSelected ? 'bg-gray-500' : 'bg-green-500';
+
       <button
         class="bg-omni-red-600 rounded-md px-4 text-slate-200 py-2 w-fit font-bold flex items-center justify-center gap-2 text-sm shadow-lg"
         (click)="addNewDeviceServer()">
@@ -16,11 +36,8 @@
 
       <button
         class="rounded-md px-4 text-slate-200 py-2 w-fit font-bold flex items-center justify-center gap-2 text-sm shadow-lg"
-        [disabled]="noServerConnected || noDeviceSelected"
-        [ngClass]="{
-          'bg-gray-500': noServerConnected || noDeviceSelected,
-          'bg-omni-red-500': !noServerConnected,
-        }"
+        [disabled]="disableDisconnectAll"
+        [ngClass]="disconnectAllClass"
         (click)="dataService.disconnectAllDevicesOfAllServers()">
         Alle Verbindungen beenden
         <span class="material-symbols-outlined text-3xl"> stop_circle </span>
@@ -28,24 +45,18 @@
 
       <button
         class="rounded-md px-4 text-slate-200 py-2 w-fit font-bold flex items-center justify-center gap-2 text-sm shadow-lg"
-        (click)="dataService.connectAllDevicesOfAllServers()"
-        [disabled]="noServerReachable || !devicesAvaiable"
-        [ngClass]="{
-          'bg-gray-500': noServerReachable || !devicesAvaiable,
-          'bg-green-500': !noServerReachable && devicesAvaiable,
-        }">
+        [disabled]="disableConnectAll"
+        [ngClass]="connectAllClass"
+        (click)="dataService.connectAllDevicesOfAllServers()">
         Alle Geräte verbinden
         <span class="material-symbols-outlined text-3xl"> play_circle </span>
       </button>
 
       <button
         class="rounded-md px-4 text-slate-200 py-2 w-fit font-bold flex items-center justify-center gap-2 text-sm shadow-lg"
-        (click)="dataService.connectCurrentChoosenDevicesOfAllServers()"
-        [disabled]="noServerReachable || noDeviceSelected"
-        [ngClass]="{
-          'bg-gray-500': noServerReachable || noDeviceSelected,
-          'bg-green-500': !noServerReachable && !noDeviceSelected,
-        }">
+        [disabled]="disableConnectSelected"
+        [ngClass]="connectSelectedClass"
+        (click)="dataService.connectCurrentChoosenDevicesOfAllServers()">
         Ausgewählte Geräte Verbinden
         <span class="material-symbols-outlined text-3xl"> play_circle </span>
       </button>
