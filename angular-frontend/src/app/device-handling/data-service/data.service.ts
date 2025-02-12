@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { DataFormat, ServerDescription } from './omnAIServer';
-
+import { ServerDescription } from './omnAIServer';
+import { DataFormat } from './data.models';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-  #servers = signal<Record<string, ServerDescription>>({});
-  servers = this.#servers.asReadonly();
-
-  httpClient = inject(HttpClient);
+  readonly httpClient = inject(HttpClient);
+  readonly #servers = signal<Record<string, ServerDescription>>({});
+  readonly servers = this.#servers.asReadonly();
 
   data = computed(() => {
     const combinedData: Record<string, DataFormat[]> = {};
@@ -37,6 +36,33 @@ export class DataService {
       }
     }
     return combinedData;
+  });
+
+  noServerReachable = computed(() => {
+    const servers = Object.values(this.servers());
+    return (
+      !(servers.length > 0) ||
+      servers.every(server => !server.serverIsReachable())
+    );
+  });
+  allServersConnected = computed(() => {
+    const servers = Object.values(this.servers());
+    return servers.length > 0 && servers.every(server => server.isConnected());
+  });
+  noServerConnected = computed(() => {
+    const servers = Object.values(this.servers());
+    return (
+      servers.length === 0 || servers.every(server => !server.isConnected())
+    );
+  });
+
+  noDeviceSelected = computed(() => {
+    const servers = Object.values(this.servers());
+    const noDeviceSelected = servers.every(server =>
+      server.devices().every(device => !server.isDeviceSelected()(device.UUID))
+    );
+
+    return noDeviceSelected;
   });
 
   // these colors can be used as fill colors
@@ -80,4 +106,52 @@ export class DataService {
     if (server) server.disconnect();
   }
 
+  enableAllDevicesOfServer(serverURL: string) {
+    const server = this.servers()[serverURL];
+    if (server)
+      server.devices().map(device => {
+        server.selectDevice(device.UUID);
+      });
+  }
+
+  disableAllDevicesOfServer(serverURL: string) {
+    const server = this.servers()[serverURL];
+    if (server)
+      server.devices().map(device => {
+        server.selectDevice(device.UUID);
+      });
+  }
+
+  toogleAllDevicesOfAllServers() {
+    if (this.allServersConnected()) {
+      this.disconnectAllDevicesOfAllServers();
+    } else this.connectAllDevicesOfAllServers();
+  }
+
+  connectCurrentChoosenDevicesOfAllServers(): void {
+    Object.values(this.servers()).forEach(server => {
+      this.connect(server.serverURL);
+    });
+  }
+
+  disconnectCurrentChoosenDevicesOfAllServers(): void {
+    Object.values(this.servers()).forEach(server => {
+      this.disableAllDevicesOfServer(server.serverURL);
+      this.disconnect(server.serverURL);
+    });
+  }
+
+  connectAllDevicesOfAllServers(): void {
+    Object.values(this.servers()).forEach(server => {
+      this.enableAllDevicesOfServer(server.serverURL);
+      this.connect(server.serverURL);
+    });
+  }
+
+  disconnectAllDevicesOfAllServers(): void {
+    Object.values(this.servers()).forEach(server => {
+      this.disableAllDevicesOfServer(server.serverURL);
+      this.disconnect(server.serverURL);
+    });
+  }
 }
