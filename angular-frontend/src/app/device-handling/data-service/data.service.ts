@@ -56,6 +56,11 @@ export class DataService {
     );
   });
 
+  devicesAvailable = computed(() => {
+    const servers = Object.values(this.servers());
+    return servers.some(server => server.devices().length > 0);
+  });
+
   noDeviceSelected = computed(() => {
     const servers = Object.values(this.servers());
     const noDeviceSelected = servers.every(server =>
