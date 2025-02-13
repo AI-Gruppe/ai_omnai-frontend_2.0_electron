@@ -134,23 +134,24 @@ export class DataService {
 
   disconnect(serverURL: string): void {
     const server = this.servers()[serverURL];
-    if (server) server.disconnect();
+    if (!server) throw new Error(`Server ${serverURL} not found`);
+    server.disconnect();
   }
 
   selectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
-    if (server)
-      server.devices().map(device => {
-        server.selectDevice(device.UUID);
-      });
+    if (!server) throw new Error(`Server ${serverURL} not found`);
+    server.devices().map(device => {
+      server.selectDevice(device.UUID);
+    });
   }
 
   unselectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
-    if (server)
-      server.devices().map(device => {
-        server.selectDevice(device.UUID);
-      });
+    if (!server) throw new Error(`Server ${serverURL} not found`);
+    server.devices().map(device => {
+      server.selectDevice(device.UUID);
+    });
   }
 
   toggleAllServerDevicesBasedOnConnectionState() {
