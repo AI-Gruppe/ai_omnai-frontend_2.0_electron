@@ -7,7 +7,6 @@ import { KeyValuePipe } from '@angular/common';
   selector: 'app-root',
   imports: [DeviceSelectionComponent, GraphComponent, KeyValuePipe],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'omnAI View';
