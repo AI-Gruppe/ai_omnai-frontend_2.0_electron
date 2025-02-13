@@ -138,18 +138,19 @@ export class DataService {
     server.disconnect();
   }
 
+  // This function have sideeffects ands manipulate the server-Instances
   selectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
     if (!server) throw new Error(`Server ${serverURL} not found`);
-    server.devices().map(device => {
+    server.devices().forEach(device => {
       server.selectDevice(device.UUID);
     });
   }
-
+  // This function have sideeffects ands manipulate the server-Instances
   unselectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
     if (!server) throw new Error(`Server ${serverURL} not found`);
-    server.devices().map(device => {
+    server.devices().forEach(device => {
       server.selectDevice(device.UUID);
     });
   }
