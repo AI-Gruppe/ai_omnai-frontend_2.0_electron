@@ -15,7 +15,8 @@
     </div> -->
 
     <!-- Graph-Container -->
-    <div class="ui-card">
+    <div
+      class="w-full flex flex-1 flex-shrink bg-white shadow-md rounded-md p-4 justify-start items-center overflow-auto">
       @let dataSet = devices.dataService.limitedData() | keyvalue;
       @defer (when dataSet.length > 0; on idle) {
         <app-graph [dataSeries]="devices.dataService.limitedData()" [colors]="devices.dataService.curveColors()"></app-graph>
@@ -25,8 +26,8 @@
         <p class="text-red-500">Fehler beim Laden der Daten.</p>
       }
     </div>
-
-    <div class="ui-card">
+    <div
+      class="w-full flex flex-1 flex-shrink bg-white shadow-md rounded-md p-4 justify-start items-center overflow-auto">
       <app-device-selection class="size-full" #devices />
     </div>
   </main>
