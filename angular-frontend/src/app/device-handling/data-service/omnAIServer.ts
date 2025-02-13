@@ -261,7 +261,6 @@ export class ServerDescription {
     });
 
     this.#socket.addEventListener('close', () => {
-      if (!this.#socket) return;
       this.isConnected.set(false);
       this.#socket = null;
     });
