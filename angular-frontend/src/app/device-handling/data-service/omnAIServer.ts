@@ -1,9 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { signal, computed, linkedSignal, inject, DestroyRef } from '@angular/core';
-import { Subscription, timer, tap, exhaustMap } from 'rxjs';
-import { messageTypeguards } from './message.typeguards';
+import { computed, linkedSignal, signal } from '@angular/core';
+import { catchError, EMPTY, exhaustMap, Subscription, tap, timer } from 'rxjs';
 import { DataFormat, DeviceInformation, DeviceOverview } from './data.models';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop'
+import { messageTypeguards } from './message.typeguards';
 
 function createWSURL(serverURL: string): string {
   return `ws://${serverURL}/ws`;
@@ -65,7 +64,6 @@ export class ServerDescription {
     return selected;
   });
 
-
   numSelectedDevices = computed(
     () =>
       Object.values(this.selectedDevices()).filter(selected => selected).length
@@ -91,8 +89,6 @@ export class ServerDescription {
   ) {
     this.startFetchingDevices();
   }
-
-  destroyer = inject(DestroyRef);
 
   /**
    * Starts the periodic retrieval of the device list.
@@ -123,20 +119,27 @@ export class ServerDescription {
       this.deviceFetchSubscription.unsubscribe();
     }
 
-    // Starts a new `timer`-based observable stream that begins immediately
-    // and then sends requests to the server at fixed "fetchInterval" intervals.
-    // exhaustMap() prevents parallel HTTP requests / race conditions, ensuring that
-    // if fetching the UUIDs takes longer than the fetchInterval, new requests
-    // are paused until the current request is completed.
+    // exhaustMap() prevents parallel HTTP requests / race conditions
     this.deviceFetchSubscription = timer(0, this.fetchInterval)
       .pipe(
-        takeUntilDestroyed(this.destroyer),
-        exhaustMap(() => this.fetchDevices())
+        exhaustMap(() =>
+          this.fetchDevices().pipe(
+            catchError(() => {
+              this.serverIsReachable.set(false);
+              return EMPTY; 
+              // Replace Error to ensure that the stream continues, 
+              // see https://stackoverflow.com/questions/63545822/how-to-continue-catcherror-in-timer-rxjs
+            })
+          )
+        )
       )
       .subscribe({
         next: () => this.serverIsReachable.set(true),
         error: () => {
-          console.error('Error fetching devices for', this.serverURL);
+          console.error(
+            'Unexpected error fetching devices for',
+            this.serverURL
+          );
           this.serverIsReachable.set(false);
         },
       });
@@ -161,13 +164,12 @@ export class ServerDescription {
   }
 
   toggleSelectStateOfDevice(uuid: string) {
-    console.log(uuid, this.selectedDevices()[uuid]);
     this.selectedDevices.update(value => {
       value[uuid] = !value[uuid];
-      console.log(uuid, value[uuid]);
       return structuredClone(value);
     });
   }
+
   selectDevice(uuid: string) {
     console.log(uuid, this.selectedDevices()[uuid]);
     this.selectedDevices.update(value => {
