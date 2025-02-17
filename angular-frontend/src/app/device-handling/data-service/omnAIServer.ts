@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { signal, computed, linkedSignal } from '@angular/core';
+import { signal, computed, linkedSignal, inject, DestroyRef } from '@angular/core';
 import { Subscription, timer, tap, exhaustMap } from 'rxjs';
 import { messageTypeguards } from './message.typeguards';
 import { DataFormat, DeviceInformation, DeviceOverview } from './data.models';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop'
 
 function createWSURL(serverURL: string): string {
   return `ws://${serverURL}/ws`;
@@ -45,7 +46,7 @@ export class ServerDescription {
     DeviceInformation[],
     Record<string, boolean>
   >({
-    source: () => this.#devices(),
+    source: this.#devices,
     computation: (currentDevices, previous) => {
       const previousSelection = previous?.value ?? {};
       const newSelection: Record<string, boolean> = {};
@@ -63,6 +64,8 @@ export class ServerDescription {
 
     return selected;
   });
+
+
   numSelectedDevices = computed(
     () =>
       Object.values(this.selectedDevices()).filter(selected => selected).length
@@ -71,10 +74,11 @@ export class ServerDescription {
   limitedData = computed(() => {
     const currentData = this.data();
     const downsampledData: Record<string, DataFormat[]> = {};
-    const rate = this.samplingRate();
+    const maxDataLenght = 2000; // displaying 2000 datapoints is enough
 
     for (const [uuid, dataArray] of Object.entries(currentData)) {
-      const n = Math.max(1, Math.floor(dataArray.length / rate));
+      // n sampling rate ratio, which is used to reduce the original data (dataArray) to a limited number of data points (maxDataLength)
+      const n = Math.max(1, Math.floor(dataArray.length / maxDataLenght));
       downsampledData[uuid] = dataArray.filter((_, index) => index % n === 0);
     }
     return downsampledData;
@@ -87,6 +91,8 @@ export class ServerDescription {
   ) {
     this.startFetchingDevices();
   }
+
+  destroyer = inject(DestroyRef);
 
   /**
    * Starts the periodic retrieval of the device list.
@@ -112,7 +118,6 @@ export class ServerDescription {
    * - This method continues running until `stopFetchingDevices()` is called,
    *   which unsubscribes from the stream and stops the periodic requests.
    */
-
   private startFetchingDevices(): void {
     if (this.deviceFetchSubscription) {
       this.deviceFetchSubscription.unsubscribe();
@@ -123,9 +128,11 @@ export class ServerDescription {
     // exhaustMap() prevents parallel HTTP requests / race conditions, ensuring that
     // if fetching the UUIDs takes longer than the fetchInterval, new requests
     // are paused until the current request is completed.
-
     this.deviceFetchSubscription = timer(0, this.fetchInterval)
-      .pipe(exhaustMap(() => this.fetchDevices()))
+      .pipe(
+        takeUntilDestroyed(this.destroyer),
+        exhaustMap(() => this.fetchDevices())
+      )
       .subscribe({
         next: () => this.serverIsReachable.set(true),
         error: () => {
@@ -195,6 +202,7 @@ export class ServerDescription {
    */
   connect(): void {
     // Why the fetching stops when websocket is connected ?
+    // -> We are no longer interested in updating devices when we communicate via websocket.
     this.stopFetchingDevices();
 
     if (this.#socket && this.#socket.readyState === WebSocket.OPEN) {

@@ -1,5 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import {
+  computed,
+  inject,
+  Injectable,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { ServerDescription } from './omnAIServer';
 import { DataFormat } from './data.models';
 
@@ -12,7 +18,6 @@ export class DataService {
   data = computed(() => {
     const combinedData: Record<string, DataFormat[]> = {};
     for (const [serverURL, server] of Object.entries(this.servers())) {
-      // Here we're assuming that `server.data()` returns Record<string, DataFormat[]>
       const serverData = server.data();
       for (const [uuid, dataArray] of Object.entries(serverData)) {
         if (!combinedData[uuid]) {
@@ -23,6 +28,8 @@ export class DataService {
     }
     return combinedData;
   });
+
+
   limitedData = computed(() => {
     const combinedData: Record<string, DataFormat[]> = {};
     for (const [serverURL, server] of Object.entries(this.servers())) {
@@ -36,27 +43,38 @@ export class DataService {
     }
     return combinedData;
   });
-  noServerReachable = computed(() => {
-    const servers = Object.values(this.servers());
-    return (
-      !(servers.length > 0) ||
-      servers.every(server => !server.serverIsReachable())
-    );
-  });
+
+  /**
+   * True when no server is reachable.
+   */
+  noServerReachable = linkedSignal(
+    () => {
+      const servers = Object.values(this.servers());
+      return (
+        servers.length === 0 ||
+        servers.every(server => !server.serverIsReachable())
+      );
+    },
+    { equal: (prev, next) => prev === next } 
+  );
+
   allServersConnected = computed(() => {
     const servers = Object.values(this.servers());
     return servers.length > 0 && servers.every(server => server.isConnected());
   });
+
   noServerConnected = computed(() => {
     const servers = Object.values(this.servers());
     return (
       servers.length === 0 || servers.every(server => !server.isConnected())
     );
   });
+
   devicesAvailable = computed(() => {
     const servers = Object.values(this.servers());
     return servers.some(server => server.devices().length > 0);
   });
+
   noDeviceSelected = computed(() => {
     const servers = Object.values(this.servers());
     const areNoDevicesSelected = servers.every(server =>
@@ -65,6 +83,7 @@ export class DataService {
 
     return areNoDevicesSelected;
   });
+
   allDevicesSelected = computed(() => {
     const servers = Object.values(this.servers());
     if (servers.length === 0) return true;
@@ -74,6 +93,7 @@ export class DataService {
 
     return areAllDevicesSelected;
   });
+
   allSelectedDevicesConnected = computed(() => {
     const servers = Object.values(this.servers());
 
@@ -85,6 +105,7 @@ export class DataService {
       return selectedDevices.length === 0 || server.isConnected();
     });
   });
+
   allDevicesConnected = computed(() => {
     const servers = Object.values(this.servers());
     if (servers.length === 0) return true;
@@ -96,7 +117,10 @@ export class DataService {
     );
   });
 
-  // these colors can be used as fill colors
+  /**
+   * Deriving the Hex-encoded color values for each device to map the color of the LED to the color used in
+   * any representation mapped to the device.
+   */
   curveColors = computed(() => {
     const colors: Record<string, string> = {};
     for (const server of Object.values(this.servers())) {
@@ -146,6 +170,7 @@ export class DataService {
       server.selectDevice(device.UUID);
     });
   }
+  
   // This function have sideeffects ands manipulate the server-Instances
   unselectAllDevicesOfServer(serverURL: string) {
     const server = this.servers()[serverURL];
