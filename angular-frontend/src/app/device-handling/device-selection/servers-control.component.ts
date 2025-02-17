@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AddDeviceServerComponent } from './add-device-server.component';
 
 /**
- * `ServersControlComponent` manages state regarding all servers and allow users to connect or 
+ * `ServersControlComponent` manages state regarding all servers and allow users to connect or
  * disconenct simultaneously.
  *
  * It provides buttons to add a server, disconnect all devices,
@@ -25,13 +25,13 @@ import { AddDeviceServerComponent } from './add-device-server.component';
 
       <div class="flex gap-2">
         <button
-          class="bg-omni-red-600 rounded-md px-4 text-slate-200 py-2 font-bold shadow-lg"
+          class="rounded-md flex gap-2 items-center px-4 bg-omni-red-600 text-slate-200 py-2 font-bold shadow-lg"
           (click)="addNewDeviceServer()">
           Server hinzufügen
         </button>
 
         <button
-          class="rounded-md px-4 text-slate-200 py-2 font-bold shadow-lg bg-omni-red-500 disabled:bg-gray-500"
+          class="rounded-md flex gap-2 items-center px-4 text-slate-200 py-2 font-bold shadow-lg bg-omni-red-500 disabled:bg-gray-500"
           [disabled]="
             dataService.noServerConnected() || dataService.noDeviceSelected()
           "
@@ -41,7 +41,7 @@ import { AddDeviceServerComponent } from './add-device-server.component';
         </button>
 
         <button
-          class="rounded-md px-4 text-slate-200 py-2 font-bold shadow-lg bg-green-500 disabled:bg-gray-500"
+          class="rounded-md flex gap-2 items-center px-4 font-bold shadow-lg  text-slate-200 bg-green-500 disabled:bg-gray-500"
           [disabled]="
             dataService.noServerReachable() ||
             !dataService.devicesAvailable() ||
@@ -53,7 +53,7 @@ import { AddDeviceServerComponent } from './add-device-server.component';
         </button>
 
         <button
-          class="rounded-md px-4 text-slate-200 py-2 font-bold shadow-lg bg-green-500 disabled:bg-gray-500"
+          class="rounded-md flex gap-2 items-center px-4 font-bold shadow-lg  text-slate-200 bg-green-500 disabled:bg-gray-500"
           [disabled]="
             dataService.noServerReachable() ||
             dataService.noDeviceSelected() ||
@@ -72,7 +72,7 @@ import { AddDeviceServerComponent } from './add-device-server.component';
 export class ServersControlComponent {
   readonly dataService = inject(DataService);
   readonly dialog = inject(MatDialog);
-  
+
   addNewDeviceServer() {
     const dialogRef = this.dialog.open(AddDeviceServerComponent, {
       minWidth: '30vw',
